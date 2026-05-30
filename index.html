@@ -7,168 +7,57 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0c10;
-    --surface: #0f1318;
-    --surface2: #151b24;
-    --border: #1e2a38;
-    --accent: #00d4ff;
-    --accent2: #ff6b35;
-    --accent3: #39ff14;
-    --accent4: #c97bff;
-    --text: #c8d8e8;
-    --text-dim: #5a7a96;
-    --text-bright: #e8f4ff;
-    --mono: 'Share Tech Mono', monospace;
-    --head: 'Rajdhani', sans-serif;
-    --body: 'Inter', sans-serif;
+    --bg: #0a0c10; --surface: #0f1318; --surface2: #151b24; --border: #1e2a38;
+    --accent: #00d4ff; --accent2: #ff6b35; --accent3: #39ff14; --accent4: #c97bff;
+    --text: #c8d8e8; --text-dim: #5a7a96; --text-bright: #e8f4ff;
+    --mono: 'Share Tech Mono', monospace; --head: 'Rajdhani', sans-serif; --body: 'Inter', sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; line-height: 1.7; min-height: 100vh; }
-
-  /* scanlines */
   body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.01) 2px, rgba(0,212,255,0.01) 4px); pointer-events: none; z-index: 9999; }
 
-  /* ── TOPBAR ── */
   .topbar { border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 16px; background: var(--surface); }
   .topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 8px var(--accent3); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
   .topbar-title { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
   .topbar-right { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
 
-  /* ── HERO ── */
-  .hero {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 72px 32px 48px;
-    text-align: center;
-  }
+  .hero { max-width: 900px; margin: 0 auto; padding: 72px 32px 48px; text-align: center; }
   .hero-label { font-family: var(--mono); font-size: 11px; color: var(--accent2); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; }
   .hero h1 { font-family: var(--head); font-size: clamp(36px, 6vw, 64px); font-weight: 700; color: var(--text-bright); line-height: 1.05; }
   .hero h1 span { color: var(--accent); }
   .hero-sub { margin-top: 18px; color: var(--text-dim); font-size: 14px; max-width: 500px; margin-left: auto; margin-right: auto; }
 
-  /* glowing divider */
   .divider { display: flex; align-items: center; gap: 16px; max-width: 900px; margin: 0 auto 52px; padding: 0 32px; }
   .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
   .divider-icon { font-family: var(--mono); font-size: 12px; color: var(--accent); opacity: 0.5; }
 
-  /* ── GRID ── */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; padding: 0 32px 80px; }
-  @media(max-width: 500px) { .grid { grid-template-columns: 1fr; padding: 0 16px 60px; } }
-
-  /* ── CARDS ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 26px 28px;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    position: relative;
-    overflow: hidden;
-    transition: border-color .25s, transform .2s, box-shadow .25s;
-  }
-  .card:hover {
-    border-color: var(--card-accent, var(--accent));
-    transform: translateY(-3px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--card-accent, var(--accent)) inset;
-  }
-  /* accent glow strip at top */
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--card-accent, var(--accent));
-    box-shadow: 0 0 12px var(--card-accent, var(--accent));
-    opacity: 0;
-    transition: opacity .25s;
-  }
-  .card:hover::before { opacity: 1; }
-
-  /* corner badge */
-  .card-badge {
-    position: absolute;
-    top: 18px; right: 20px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--card-accent, var(--accent));
-    opacity: 0.5;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  .card-icon {
-    font-size: 32px;
-    margin-bottom: 14px;
-    filter: drop-shadow(0 0 8px var(--card-accent, var(--accent)));
-  }
-  .card-num {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--card-accent, var(--accent));
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    opacity: 0.7;
-  }
-  .card-title {
-    font-family: var(--head);
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--text-bright);
-    margin-bottom: 8px;
-    line-height: 1.2;
-  }
-  .card-desc {
-    font-size: 13px;
-    color: var(--text-dim);
-    line-height: 1.6;
-    flex: 1;
-    margin-bottom: 18px;
-  }
-  .card-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 20px;
-  }
-  .tag {
-    font-family: var(--mono);
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 3px;
-    background: rgba(255,255,255,0.05);
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    letter-spacing: 0.5px;
-  }
-  .card-link {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--card-accent, var(--accent));
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: gap .2s;
-  }
-  .card:hover .card-link { gap: 10px; }
-
-  /* ── STATS ROW ── */
-  .stats {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    max-width: 900px;
-    margin: 0 auto 56px;
-    padding: 0 32px;
-    flex-wrap: wrap;
-  }
+  .stats { display: flex; justify-content: center; gap: 40px; max-width: 900px; margin: 0 auto 56px; padding: 0 32px; flex-wrap: wrap; }
   .stat { text-align: center; }
   .stat-num { font-family: var(--head); font-size: 36px; font-weight: 700; color: var(--accent); }
   .stat-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; padding: 0 32px 80px; }
+  @media(max-width: 500px) { .grid { grid-template-columns: 1fr; padding: 0 16px 60px; } }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 26px 28px; text-decoration: none; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: border-color .25s, transform .2s, box-shadow .25s; }
+  .card:hover { border-color: var(--card-accent, var(--accent)); transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--card-accent, var(--accent)) inset; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--card-accent, var(--accent)); box-shadow: 0 0 12px var(--card-accent, var(--accent)); opacity: 0; transition: opacity .25s; }
+  .card:hover::before { opacity: 1; }
+
+  .card-badge { position: absolute; top: 18px; right: 20px; font-family: var(--mono); font-size: 10px; color: var(--card-accent, var(--accent)); opacity: 0.5; letter-spacing: 1px; text-transform: uppercase; }
+  .card-icon { font-size: 32px; margin-bottom: 14px; filter: drop-shadow(0 0 8px var(--card-accent, var(--accent))); }
+  .card-num { font-family: var(--mono); font-size: 10px; color: var(--card-accent, var(--accent)); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; opacity: 0.7; }
+  .card-title { font-family: var(--head); font-size: 22px; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; line-height: 1.2; }
+  .card-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; flex: 1; margin-bottom: 18px; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+  .tag { font-family: var(--mono); font-size: 10px; padding: 2px 7px; border-radius: 3px; background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); letter-spacing: 0.5px; }
+  .card-link { font-family: var(--mono); font-size: 12px; color: var(--card-accent, var(--accent)); display: flex; align-items: center; gap: 6px; transition: gap .2s; }
+  .card:hover .card-link { gap: 10px; }
+
+  .footer { text-align: center; padding: 20px 32px 40px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
 
   ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
@@ -187,20 +76,10 @@
   <div class="hero-sub">Personal study references for HTB Academy modules — formatted for fast lookup during labs and assessments.</div>
 </div>
 
-<!-- Stats -->
 <div class="stats">
-  <div class="stat">
-    <div class="stat-num">4</div>
-    <div class="stat-label">Modules</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">50+</div>
-    <div class="stat-label">Topics Covered</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">20+</div>
-    <div class="stat-label">Q&amp;A Answers</div>
-  </div>
+  <div class="stat"><div class="stat-num">4</div><div class="stat-label">Modules</div></div>
+  <div class="stat"><div class="stat-num">50+</div><div class="stat-label">Topics Covered</div></div>
+  <div class="stat"><div class="stat-num">20+</div><div class="stat-label">Q&amp;A Answers</div></div>
 </div>
 
 <div class="divider">
@@ -209,81 +88,61 @@
   <div class="divider-line"></div>
 </div>
 
-<!-- Cards -->
 <div class="grid">
 
-  <!-- Nmap -->
-  <a class="card" href="nmap-notes.html" style="--card-accent: #00d4ff;">
+  <a class="card" href="HTML%20Notes/nmap-notes.html" style="--card-accent: #00d4ff;">
     <div class="card-badge">Module 01</div>
     <div class="card-icon">🗺️</div>
     <div class="card-num">Network Scanning</div>
     <div class="card-title">Nmap</div>
     <div class="card-desc">Host discovery, port states, scan types (SYN/TCP/ACK/UDP), NSE scripting engine, performance tuning, and firewall & IDS evasion techniques.</div>
     <div class="card-tags">
-      <span class="tag">Host Discovery</span>
-      <span class="tag">Port Scanning</span>
-      <span class="tag">NSE Scripts</span>
-      <span class="tag">Evasion</span>
-      <span class="tag">Performance</span>
-      <span class="tag">Cheat Sheet</span>
+      <span class="tag">Host Discovery</span><span class="tag">Port Scanning</span><span class="tag">NSE Scripts</span><span class="tag">Evasion</span><span class="tag">Performance</span><span class="tag">Cheat Sheet</span>
     </div>
     <div class="card-link">Open Notes →</div>
   </a>
 
-  <!-- Web Recon -->
-  <a class="card" href="web-recon-notes.html" style="--card-accent: #ff6b35;">
+  <a class="card" href="HTML%20Notes/web-recon-notes.html" style="--card-accent: #ff6b35;">
     <div class="card-badge">Module 02</div>
     <div class="card-icon">🌐</div>
     <div class="card-num">Information Gathering — Web</div>
     <div class="card-title">Web Recon</div>
     <div class="card-desc">WHOIS, DNS enumeration, zone transfers, fingerprinting, virtual host discovery, web crawling with ReconSpider, Google dorks, and the full skill assessment walkthrough.</div>
     <div class="card-tags">
-      <span class="tag">WHOIS</span>
-      <span class="tag">DNS</span>
-      <span class="tag">vHost Enum</span>
-      <span class="tag">Crawling</span>
-      <span class="tag">Google Dorks</span>
-      <span class="tag">Skill Assessment</span>
+      <span class="tag">WHOIS</span><span class="tag">DNS</span><span class="tag">vHost Enum</span><span class="tag">Crawling</span><span class="tag">Google Dorks</span><span class="tag">Skill Assessment</span>
     </div>
     <div class="card-link">Open Notes →</div>
   </a>
 
-  <!-- Footprinting -->
-  <a class="card" href="footprinting-notes.html" style="--card-accent: #39ff14;">
+  <a class="card" href="HTML%20Notes/footprinting-notes.html" style="--card-accent: #39ff14;">
     <div class="card-badge">Module 03</div>
     <div class="card-icon">👣</div>
     <div class="card-num">Service Enumeration</div>
     <div class="card-title">Footprinting</div>
     <div class="card-desc">20-section deep dive: FTP, SMB, NFS, DNS, SMTP, IMAP, SNMP, MySQL, MSSQL, Oracle TNS, IPMI, SSH, WinRM, WMI — plus three full lab walkthroughs (Easy, Medium, Hard).</div>
     <div class="card-tags">
-      <span class="tag">FTP / SMB / NFS</span>
-      <span class="tag">Databases</span>
-      <span class="tag">SNMP / IPMI</span>
-      <span class="tag">Remote Mgmt</span>
-      <span class="tag">Lab Easy</span>
-      <span class="tag">Lab Medium</span>
-      <span class="tag">Lab Hard</span>
+      <span class="tag">FTP / SMB / NFS</span><span class="tag">Databases</span><span class="tag">SNMP / IPMI</span><span class="tag">Remote Mgmt</span><span class="tag">Lab Easy</span><span class="tag">Lab Medium</span><span class="tag">Lab Hard</span>
     </div>
     <div class="card-link">Open Notes →</div>
   </a>
 
-  <!-- Vulnerability Assessment -->
-  <a class="card" href="vulnerability-assessment-notes.html" style="--card-accent: #c97bff;">
+  <a class="card" href="HTML%20Notes/vulnerability-assessment-notes.html" style="--card-accent: #c97bff;">
     <div class="card-badge">Module 04</div>
     <div class="card-icon">🛡️</div>
     <div class="card-num">Vulnerability Scanning</div>
     <div class="card-title">Vulnerability Assessment</div>
     <div class="card-desc">Nessus and OpenVAS configuration, authenticated scanning, reading plugin output, exporting reports, CVSS v3.1 scoring, the DREAD model, and all skill assessment answers.</div>
     <div class="card-tags">
-      <span class="tag">Nessus</span>
-      <span class="tag">OpenVAS</span>
-      <span class="tag">CVSS v3.1</span>
-      <span class="tag">DREAD</span>
-      <span class="tag">Skill Assessment</span>
+      <span class="tag">Nessus</span><span class="tag">OpenVAS</span><span class="tag">CVSS v3.1</span><span class="tag">DREAD</span><span class="tag">Skill Assessment</span>
     </div>
     <div class="card-link">Open Notes →</div>
   </a>
 
+</div>
+
+<div class="footer">
+  <a href="https://leviathan516.github.io/HTB-CTPS-Notes-Tutorial/" target="_blank">leviathan516.github.io/HTB-CTPS-Notes-Tutorial</a>
+  &nbsp;·&nbsp; leviathan516
 </div>
 
 </body>
