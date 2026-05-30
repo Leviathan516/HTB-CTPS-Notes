@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nmap — Field Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #0f1318;
+    --surface2: #151b24;
+    --border: #1e2a38;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --accent4: #c97bff;
+    --text: #c8d8e8;
+    --text-dim: #5a7a96;
+    --text-bright: #e8f4ff;
+    --mono: 'Share Tech Mono', monospace;
+    --head: 'Rajdhani', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; line-height: 1.7; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.01) 2px, rgba(0,212,255,0.01) 4px); pointer-events: none; z-index: 9999; }
+
+  /* ── TOPBAR ── */
+  .topbar { border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 16px; background: var(--surface); position: sticky; top: 0; z-index: 200; }
+  .topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 8px var(--accent3); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .topbar-title { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+  .topbar-right { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  /* ── LAYOUT ── */
+  .page { display: flex; }
+  .sidebar { width: 210px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); height: calc(100vh - 49px); position: sticky; top: 49px; overflow-y: auto; padding: 20px 0; }
+  .sidebar::-webkit-scrollbar { width: 4px; } .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+  .nav-section { padding: 8px 16px 4px; font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+  .nav-link { display: block; padding: 6px 20px; font-size: 12px; color: var(--text-dim); text-decoration: none; transition: color .15s, background .15s; border-left: 2px solid transparent; }
+  .nav-link:hover { color: var(--accent); background: rgba(0,212,255,0.05); border-left-color: var(--accent); }
+  .main { flex: 1; min-width: 0; padding: 40px 44px 80px; max-width: 920px; }
+
+  /* ── HERO ── */
+  .hero { margin-bottom: 52px; padding-bottom: 30px; border-bottom: 1px solid var(--border); position: relative; }
+  .hero::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 120px; height: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .hero-label { font-family: var(--mono); font-size: 11px; color: var(--accent2); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-family: var(--head); font-size: clamp(30px, 4vw, 50px); font-weight: 700; color: var(--text-bright); line-height: 1.1; }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub { margin-top: 14px; color: var(--text-dim); font-size: 13px; max-width: 580px; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 60px; scroll-margin-top: 70px; }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .section-num { font-family: var(--mono); font-size: 11px; color: var(--accent); background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); padding: 2px 8px; border-radius: 3px; flex-shrink: 0; }
+  .section-title { font-family: var(--head); font-size: 22px; font-weight: 600; color: var(--text-bright); }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+  .sub-title { font-family: var(--head); font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 22px 0 10px; display: flex; align-items: center; gap: 8px; }
+
+  /* ── CARDS ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 18px 22px; margin-bottom: 14px; position: relative; transition: border-color .2s; }
+  .card:hover { border-color: rgba(0,212,255,0.3); }
+  .card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 6px 0 0 6px; opacity: 0; transition: opacity .2s; }
+  .card:hover::before { opacity: 1; }
+  .card-title { font-family: var(--head); font-size: 15px; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* ── TAGS ── */
+  .tag { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 3px; letter-spacing: 1px; white-space: nowrap; }
+  .tag-tip    { background: rgba(0,212,255,0.1);   color: var(--accent);  border: 1px solid rgba(0,212,255,0.2); }
+  .tag-danger { background: rgba(255,107,53,0.1);  color: var(--accent2); border: 1px solid rgba(255,107,53,0.2); }
+  .tag-tool   { background: rgba(57,255,20,0.1);   color: var(--accent3); border: 1px solid rgba(57,255,20,0.2); }
+  .tag-port   { background: rgba(201,123,255,0.1); color: var(--accent4); border: 1px solid rgba(201,123,255,0.25); }
+
+  /* ── CODE ── */
+  .code-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+  .code-block { background: #060809; border: 1px solid var(--border); border-radius: 4px; padding: 13px 15px; font-family: var(--mono); font-size: 12px; color: var(--accent3); overflow-x: auto; margin: 8px 0; line-height: 1.65; }
+  .code-block .prompt  { color: var(--accent2); user-select: none; }
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .flag    { color: var(--accent); }
+  code { font-family: var(--mono); font-size: 12px; background: rgba(0,212,255,0.08); color: var(--accent); padding: 1px 5px; border-radius: 3px; }
+
+  /* ── TABLES ── */
+  .tbl-wrap { overflow-x: auto; margin: 8px 0 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--surface2); color: var(--accent); font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 9px 13px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 13px; border-bottom: 1px solid rgba(30,42,56,0.6); color: var(--text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(0,212,255,0.03); }
+  td code { font-size: 11px; }
+  td strong { color: var(--text-bright); }
+
+  /* state colours */
+  .state-open     { color: var(--accent3); font-family: var(--mono); font-size: 12px; }
+  .state-closed   { color: var(--accent2); font-family: var(--mono); font-size: 12px; }
+  .state-filtered { color: var(--accent4); font-family: var(--mono); font-size: 12px; }
+  .state-other    { color: var(--text-dim); font-family: var(--mono); font-size: 12px; }
+
+  /* ── ALERT ── */
+  .alert { background: rgba(255,107,53,0.07); border: 1px solid rgba(255,107,53,0.25); border-radius: 5px; padding: 13px 17px; margin: 12px 0; font-size: 13px; }
+  .alert-title { color: var(--accent2); font-family: var(--head); font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .alert-blue { background: rgba(0,212,255,0.05); border-color: rgba(0,212,255,0.2); }
+  .alert-blue .alert-title { color: var(--accent); }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media(max-width:720px){ .grid-2,.grid-3{ grid-template-columns:1fr; } }
+
+  /* ── SCAN TYPE BADGE ── */
+  .scan-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-family: var(--mono); font-size: 11px; color: var(--text-bright); margin: 4px 4px 4px 0; }
+  .scan-badge .flag { color: var(--accent); }
+
+  /* ── PACKET FLOW ── */
+  .flow { display: flex; align-items: center; gap: 0; margin: 12px 0; flex-wrap: wrap; }
+  .flow-node { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 6px 12px; font-family: var(--mono); font-size: 11px; color: var(--text-bright); }
+  .flow-arrow { padding: 0 8px; color: var(--accent2); font-size: 14px; }
+  .flow-result { padding: 6px 12px; border-radius: 4px; font-family: var(--mono); font-size: 11px; border: 1px solid; }
+  .flow-open     { background: rgba(57,255,20,0.08);   color: var(--accent3); border-color: rgba(57,255,20,0.3); }
+  .flow-closed   { background: rgba(255,107,53,0.08);  color: var(--accent2); border-color: rgba(255,107,53,0.3); }
+  .flow-filtered { background: rgba(201,123,255,0.08); color: var(--accent4); border-color: rgba(201,123,255,0.3); }
+
+  /* ── TIMING TEMPLATE ── */
+  .timing-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; margin: 10px 0; }
+  .timing-cell { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 10px 6px; text-align: center; }
+  .timing-cell .t-num { font-family: var(--mono); font-size: 18px; color: var(--accent); font-weight: bold; }
+  .timing-cell .t-name { font-size: 10px; color: var(--text-dim); margin-top: 4px; font-family: var(--mono); }
+  @media(max-width:640px){ .timing-grid{ grid-template-columns:repeat(3,1fr); } }
+
+  p { margin-bottom: 10px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-dot"></div>
+  <div class="topbar-title">HTB // Nmap Module</div>
+  <div class="topbar-right">leviathan@parrot ~ field notes</div>
+</div>
+
+<div class="page">
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav class="sidebar">
+  <div class="nav-section">Core</div>
+  <a class="nav-link" href="#intro">01 · Introduction</a>
+  <a class="nav-link" href="#discovery">02 · Host Discovery</a>
+  <a class="nav-link" href="#scanning">03 · Port Scanning</a>
+  <a class="nav-link" href="#services">04 · Service Enumeration</a>
+  <a class="nav-link" href="#nse">05 · Scripting Engine</a>
+
+  <div class="nav-section" style="margin-top:10px;">Tuning</div>
+  <a class="nav-link" href="#performance">06 · Performance</a>
+  <a class="nav-link" href="#evasion">07 · Firewall / IDS Evasion</a>
+
+  <div class="nav-section" style="margin-top:10px;">Reference</div>
+  <a class="nav-link" href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="main">
+
+  <div class="hero">
+    <div class="hero-label">Module — Network Scanning</div>
+    <h1><span>Nmap</span><br>Field Notes</h1>
+    <div class="hero-sub">Host discovery, port states, scan types, NSE scripts, performance tuning, and firewall evasion — all in one reference.</div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- 01 · INTRODUCTION           -->
+  <!-- ════════════════════════════ -->
+  <div class="section" id="intro">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title">Introduction — TCP-SYN Scan</div>
+      <div class="section-line"></div>
+    </div>
+
+    <p>The TCP-SYN scan (<code>-sS</code>) is the default scan method and one of the most popular. It can scan several thousand ports per second. A SYN packet is sent but the three-way handshake is <strong>never completed</strong> — no full TCP connection is established.</p>
+
+    <div class="card">
+      <div class="card-title">How SYN Scan Determines Port State</div>
+
+      <div class="flow" style="margin-top:4px;">
+        <div class="flow-node">SYN →</div>
+        <div class="flow-arrow">·</div>
+        <div class="flow-node">← SYN-ACK</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-result flow-open">open</div>
+      </div>
+      <div class="flow">
+        <div class="flow-node">SYN →</div>
+        <div class="flow-arrow">·</div>
+        <div class="flow-node">← RST</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-result flow-closed">closed</div>
+      </div>
+      <div class="flow">
+        <div class="flow-node">SYN →</div>
+        <div class="flow-arrow">·</div>
+        <div class="flow-node">(no response)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-result flow-filtered">filtered</div>
+      </div>
+    </div>
+
+    <div class="alert alert-blue" style="margin-top:8px;">
+      <div class="alert-title">💡 Why SYN scan is stealthy</div>
+      Because the handshake never completes, many older logging systems and services won't record the connection — making it less detectable than a full Connect scan (<code>-sT</code>).
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- 02 · HOST DISCOVERY         -->
+  <!-- ════════════════════════════ -->
+  <div class="section" id="discovery">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title">Host Discovery</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Ping Scan — <code>-sn</code></div>
+      <p style="font-size:13px;margin-bottom:10px;">Disables port scanning. Nmap automatically sends ICMP Echo Requests (<code>-PE</code>) to discover live hosts. On local networks, it first sends an ARP ping — ARP replies confirm a host is alive before any ICMP is sent.</p>
+      <div class="code-label">Ping scan with packet trace</div>
+      <div class="code-block"><span class="prompt">$ </span>sudo nmap 10.129.2.18 <span class="flag">-sn -oA host -PE --packet-trace</span>
+
+SENT (0.0074s) ARP who-has 10.129.2.18 tell 10.10.14.2
+RCVD (0.0309s) ARP reply 10.129.2.18 is-at DE:AD:00:00:BE:EF
+Host is up (0.023s latency).
+MAC Address: DE:AD:00:00:BE:EF</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><code>--packet-trace</code></div>
+        <p style="font-size:13px;">Shows every packet sent and received. Essential for understanding <em>why</em> Nmap produced a result — especially useful when diagnosing filtered ports or unexpected host states.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><code>--reason</code></div>
+        <p style="font-size:13px;">Displays the specific reason Nmap marked a host or port with its state (e.g. <em>arp-response</em>, <em>syn-ack</em>, <em>no-response</em>). Great for building intuition.</p>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:8px;">
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-sn</code></td><td>Disable port scanning — host discovery only</td></tr>
+          <tr><td><code>-PE</code></td><td>Use ICMP Echo Requests for ping</td></tr>
+          <tr><td><code>-Pn</code></td><td>Skip host discovery — treat all hosts as online (useful if ICMP is blocked)</td></tr>
+          <tr><td><code>--disable-arp-ping</code></td><td>Suppress ARP pings on local networks</td></tr>
+          <tr><td><code>-n</code></td><td>Disable DNS resolution — speeds up scans</td></tr>
+          <tr><td><code>--packet-trace</code></td><td>Show all packets sent and received</td></tr>
+          <tr><td><code>--reason</code></td><td>Show reason for each port/host state</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- 03 · PORT SCANNING          -->
+  <!-- ════════════════════════════ -->
+  <div class="section" id="scanning">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title">Host &amp; Port Scanning</div>
+      <div class="section-line"></div>
+    </div>
+
+    <!-- Port states -->
+    <div class="sub-title">The 6 Port States</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>State</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="state-open">open</span></td>
+            <td>Connection established — TCP, UDP, or SCTP. These are your targets.</td>
+          </tr>
+          <tr>
+            <td><span class="state-closed">closed</span></td>
+            <td>Received an RST flag back. Port is accessible but no service is listening.</td>
+          </tr>
+          <tr>
+            <td><span class="state-filtered">filtered</span></td>
+            <td>No response, or an error code returned. Firewall likely dropping/rejecting packets.</td>
+          </tr>
+          <tr>
+            <td><span class="state-other">unfiltered</span></td>
+            <td>Only from ACK scan (<code>-sA</code>). Port accessible but open/closed can't be determined.</td>
+          </tr>
+          <tr>
+            <td><span class="state-other">open|filtered</span></td>
+            <td>No response — firewall or filter may be protecting the port.</td>
+          </tr>
+          <tr>
+            <td><span class="state-other">closed|filtered</span></td>
+            <td>Only from IP ID idle scans. Impossible to determine if closed or filtered.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Scan types -->
+    <div class="sub-title">Scan Types</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">SYN Scan <span class="tag tag-tip">DEFAULT</span></div>
+        <div class="scan-badge"><span class="flag">-sS</span></div>
+        <p style="font-size:13px;margin-top:8px;">Sends SYN, never completes handshake. Thousands of ports/second. Requires root. Less likely to appear in logs.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Connect Scan</div>
+        <div class="scan-badge"><span class="flag">-sT</span></div>
+        <p style="font-size:13px;margin-top:8px;">Full three-way handshake. Slower, but works without root. Leaves full connection logs.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">ACK Scan <span class="tag tag-tip">EVASION</span></div>
+        <div class="scan-badge"><span class="flag">-sA</span></div>
+        <p style="font-size:13px;margin-top:8px;">Sends only ACK flag. Harder to filter — firewalls often pass ACK packets since they can't tell if the connection originated internally. Returns <em>unfiltered</em> state.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">UDP Scan</div>
+        <div class="scan-badge"><span class="flag">-sU</span></div>
+        <p style="font-size:13px;margin-top:8px;">Scans UDP ports. Much slower than TCP. Critical for SNMP (161), DNS (53), DHCP, and other UDP services.</p>
+      </div>
+    </div>
+
+    <!-- Port ranges -->
+    <div class="sub-title">Port Selection</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-p-</code></td><td>Scan all 65,535 ports</td></tr>
+          <tr><td><code>-p22-110</code></td><td>Scan a range of ports</td></tr>
+          <tr><td><code>-p22,25,80</code></td><td>Scan specific ports only</td></tr>
+          <tr><td><code>-F</code></td><td>Fast scan — top 100 ports only</td></tr>
+          <tr><td><code>--top-ports=&lt;num&gt;</code></td><td>Scan the N most common ports</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Output -->
+    <div class="sub-title">Output Formats</div>
+    <div class="card">
+      <div class="code-block"><span class="comment"># Save in all formats at once (recommended)</span>
+<span class="prompt">$ </span>nmap ... <span class="flag">-oA</span> scan_output   <span class="comment"># creates .nmap .xml .gnmap</span>
+
+<span class="comment"># Individual formats</span>
+<span class="prompt">$ </span>nmap ... <span class="flag">-oN</span> scan.txt      <span class="comment"># normal (human-readable)</span>
+<span class="prompt">$ </span>nmap ... <span class="flag">-oX</span> scan.xml      <span class="comment"># XML (parse with tools)</span>
+<span class="prompt">$ </span>nmap ... <span class="flag">-oG</span> scan.gnmap    <span class="comment"># grepable</span>
+
+<span class="comment"># Convert XML to HTML report</span>
+<span class="prompt">$ </span>xsltproc target.xml -o target.html</div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">💡 Always save output</div>
+      Use <code>-oA</code> on every scan. Re-running a scan later wastes time, may alert IDS, and results can differ. The XML output is also parseable by tools like Metasploit.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- 04 · SERVICE ENUMERATION    -->
+  <!-- ════════════════════════════ -->
+  <div class="section" id="services">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title">Service Enumeration</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Version Detection <span class="tag tag-tool">KEY</span></div>
+        <div class="scan-badge"><span class="flag">-sV</span></div>
+        <p style="font-size:13px;margin-top:8px;">Probes open ports to determine the service name and version. Banner grabbing + service fingerprinting. Version strings are essential for matching known CVEs.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">OS Detection</div>
+        <div class="scan-badge"><span class="flag">-O</span></div>
+        <p style="font-size:13px;margin-top:8px;">Attempts to determine the target's operating system via TCP/IP stack fingerprinting. Requires root and at least one open + one closed port.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Aggressive Scan</div>
+        <div class="scan-badge"><span class="flag">-A</span></div>
+        <p style="font-size:13px;margin-top:8px;">Combines OS detection, version detection, script scanning, and traceroute in one flag. Noisy but comprehensive.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Default Scripts</div>
+        <div class="scan-badge"><span class="flag">-sC</span></div>
+        <p style="font-size:13px;margin-top:8px;">Runs the NSE scripts categorised as <em>default</em>. Safe for most targets. Commonly paired with <code>-sV</code>.</p>
+      </div>
+    </div>
+
+    <div class="code-label" style="margin-top:16px;">Standard enumeration combo</div>
+    <div class="code-block"><span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-sV -sC -O -oA</span> full_scan
+<span class="comment"># Add -p- for all ports, or --top-ports=1000 for the top 1000</span></div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- 05 · NSE                    -->
+  <!-- ════════════════════════════ -->
+  <div class="section" id="nse">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title">Nmap Scripting Engine (NSE)</div>
+      <div class="section-line"></div>
+    </div>
+
+    <p style="margin-bottom:16px;">NSE scripts extend Nmap's capabilities far beyond port scanning. Scripts are organized into categories. Run with <code>--script &lt;name-or-category&gt;</code>.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Description</th><th>Use When</th></tr></thead>
+        <tbody>
+          <tr><td><code>default</code></td><td>Run automatically with <code>-sC</code></td><td>Every scan — safe, informative</td></tr>
+          <tr><td><code>auth</code></td><td>Credential determination</td><td>Testing for default/no-auth access</td></tr>
+          <tr><td><code>brute</code></td><td>Brute-force logins</td><td>When you have a wordlist and a service login</td></tr>
+          <tr><td><code>discovery</code></td><td>Evaluate accessible services</td><td>Expanding knowledge of the target</td></tr>
+          <tr><td><code>vuln</code></td><td>Identify specific vulnerabilities</td><td>After service versions are known</td></tr>
+          <tr><td><code>exploit</code></td><td>Attempt to exploit known vulns</td><td>Controlled, consented tests only</td></tr>
+          <tr><td><code>safe</code></td><td>Non-intrusive, defensive scripts</td><td>When impact must be minimised</td></tr>
+          <tr><td><code>version</code></td><td>Extend service detection</td><td>Complement to <code>-sV</code></td></tr>
+          <tr><td><code>broadcast</code></td><td>Host discovery via broadcast</td><td>LAN enumeration</td></tr>
+          <tr><td><code>intrusive</code></td><td>May negatively affect the target</td><td>Only in fully authorised tests</td></tr>
+          <tr><td><code>malware</code></td><td>Check for malware infection</td><td>Incident response scenarios</td></tr>
+          <tr><td><code>dos</code></td><td>Test for DoS vulnerabilities</td><td>Rarely — harms the service</td></tr>
+          <tr><td><code>fuzzer</code></td><td>Unexpected input handling tests</td><td>Long-running, targeted fuzzing</td></tr>
+          <tr><td><code>external</code></td><td>Uses external services</td><td>OSINT enrichment</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Script Usage Examples</div>
+      <div class="code-block"><span class="comment"># Run default scripts</span>
+<span class="prompt">$ </span>nmap 10.129.2.28 <span class="flag">-sC</span>
+
+<span class="comment"># Run a specific script</span>
+<span class="prompt">$ </span>nmap 10.129.2.28 <span class="flag">--script</span> smtp-commands
+
+<span class="comment"># Run a category</span>
+<span class="prompt">$ </span>nmap 10.129.2.28 <span class="flag">--script</span> vuln
+
+<span class="comment"># Run multiple scripts</span>
+<span class="prompt">$ </span>nmap 10.129.2.28 <span class="flag">--script</span> ms-sql-info,ms-sql-ntlm-info
+
+<span class="comment"># Wildcard — all scripts matching a pattern</span>
+<span class="prompt">$ </span>nmap 10.129.2.28 <span class="flag">--script</span> "nfs*"
+
+<span class="comment"># Search for available scripts</span>
+<span class="prompt">$ </span>find / -name "*.nse" | xargs grep -l "smb" 2>/dev/null</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- 06 · PERFORMANCE            -->
+  <!-- ════════════════════════════ -->
+  <div class="section" id="performance">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-title">Performance Tuning</div>
+      <div class="section-line"></div>
+    </div>
+
+    <!-- Timing templates -->
+    <div class="sub-title">Timing Templates <code>-T &lt;0–5&gt;</code></div>
+    <div class="timing-grid">
+      <div class="timing-cell"><div class="t-num">T0</div><div class="t-name">paranoid</div></div>
+      <div class="timing-cell"><div class="t-num">T1</div><div class="t-name">sneaky</div></div>
+      <div class="timing-cell"><div class="t-num">T2</div><div class="t-name">polite</div></div>
+      <div class="timing-cell" style="border-color:rgba(0,212,255,0.4)"><div class="t-num" style="color:var(--accent3)">T3</div><div class="t-name" style="color:var(--accent3)">normal ✓</div></div>
+      <div class="timing-cell"><div class="t-num">T4</div><div class="t-name">aggressive</div></div>
+      <div class="timing-cell"><div class="t-num">T5</div><div class="t-name">insane</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">T3 is the default. T4/T5 sacrifice accuracy for speed — may miss hosts on high-latency links. T0/T1 are for IDS evasion (very slow).</p>
+
+    <!-- RTT -->
+    <div class="card">
+      <div class="card-title">RTT Timeout Tuning</div>
+      <p style="font-size:13px;margin-bottom:10px;">Nmap's default initial RTT is 100ms. Reducing it speeds up scans but risks missing slow hosts.</p>
+      <div class="code-block"><span class="comment"># Default — 39 seconds for /24</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.0/24 -F
+
+<span class="comment"># Optimised RTT — ~12 seconds (but missed 2 hosts)</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.0/24 -F <span class="flag">--initial-rtt-timeout 50ms --max-rtt-timeout 100ms</span></div>
+      <div class="alert" style="margin-top:10px;">
+        <div class="alert-title">⚠ Accuracy vs Speed</div>
+        Setting <code>--initial-rtt-timeout</code> too low can cause you to miss hosts entirely. In the example above, 2 hosts were lost. Use aggressive RTT only when speed matters more than completeness.
+      </div>
+    </div>
+
+    <!-- Rates -->
+    <div class="card">
+      <div class="card-title">Packet Rate</div>
+      <p style="font-size:13px;margin-bottom:10px;">When you know the network bandwidth (e.g. a white-box test where you're whitelisted), set <code>--min-rate</code> to blast packets as fast as possible.</p>
+      <div class="code-block"><span class="comment"># Default — 29 seconds</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.0/24 -F
+
+<span class="comment"># 300 packets/sec — ~8 seconds (same host count)</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.0/24 -F <span class="flag">--min-rate 300</span></div>
+    </div>
+
+    <!-- Retries -->
+    <div class="card">
+      <div class="card-title">Max Retries</div>
+      <p style="font-size:13px;">Default is 10 retries per port. Reduce to <code>0</code> to skip any port that doesn't respond on the first packet — big speed gain, some accuracy loss.</p>
+      <div class="code-block"><span class="prompt">$ </span>sudo nmap 10.129.2.0/24 -F <span class="flag">--max-retries 0</span></div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:6px;">
+      <table>
+        <thead><tr><th>Option</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-T &lt;0-5&gt;</code></td><td>Timing template (0=slowest/stealthiest, 5=fastest)</td></tr>
+          <tr><td><code>--min-parallelism &lt;n&gt;</code></td><td>Minimum number of simultaneous probes</td></tr>
+          <tr><td><code>--initial-rtt-timeout &lt;ms&gt;</code></td><td>Starting RTT timeout value</td></tr>
+          <tr><td><code>--max-rtt-timeout &lt;ms&gt;</code></td><td>Maximum RTT timeout value</td></tr>
+          <tr><td><code>--min-rate &lt;n&gt;</code></td><td>Send at least N packets per second</td></tr>
+          <tr><td><code>--max-retries &lt;n&gt;</code></td><td>Max retransmissions per port (default: 10)</td></tr>
+          <tr><td><code>--stats-every=5s</code></td><td>Print scan progress every 5 seconds</td></tr>
+          <tr><td><code>-v / -vv</code></td><td>Verbose — show results as they come in</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- 07 · EVASION                -->
+  <!-- ════════════════════════════ -->
+  <div class="section" id="evasion">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <div class="section-title">Firewall &amp; IDS/IPS Evasion</div>
+      <div class="section-line"></div>
+    </div>
+
+    <!-- Dropped vs Rejected -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Dropped Packets</div>
+        <p style="font-size:13px;">Firewall silently discards the packet. <strong>No response returned.</strong> Nmap marks the port <span class="state-filtered">filtered</span>.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Rejected Packets</div>
+        <p style="font-size:13px;">Firewall sends an explicit response back — TCP RST or an ICMP error code (Net Unreachable, Host Prohibited, Port Unreachable, etc.).</p>
+      </div>
+    </div>
+
+    <!-- ACK scan -->
+    <div class="card" style="margin-top:4px;">
+      <div class="card-title">ACK Scan for Firewall Mapping <span class="tag tag-tip">KEY TECHNIQUE</span></div>
+      <div class="scan-badge"><span class="flag">-sA</span></div>
+      <p style="font-size:13px;margin-top:10px;">Sends only the ACK flag. Firewalls generally pass ACK packets because they can't determine whether the connection originated internally or externally — unlike SYN packets, which external firewalls almost always block. Use to discover which ports are <em>unfiltered</em> vs <em>filtered</em>.</p>
+      <div class="flow" style="margin-top:12px;">
+        <div class="flow-node">ACK →</div>
+        <div class="flow-arrow">·</div>
+        <div class="flow-node">← RST (any open/closed)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-result flow-open">unfiltered</div>
+      </div>
+      <div class="flow">
+        <div class="flow-node">ACK →</div>
+        <div class="flow-arrow">·</div>
+        <div class="flow-node">(no response / ICMP error)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-result flow-filtered">filtered</div>
+      </div>
+    </div>
+
+    <!-- Decoys / Spoofing -->
+    <div class="sub-title">Decoys &amp; Source Spoofing</div>
+    <div class="card">
+      <div class="card-title">Decoy Scan <span class="tag tag-danger">NOISY</span></div>
+      <div class="code-block"><span class="comment"># Mix your real IP with 5 random decoys</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-D RND:5</span>
+
+<span class="comment"># Specify exact decoy IPs</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-D 10.10.1.1,10.10.1.2,ME</span></div>
+      <p style="font-size:13px;margin-top:8px;">Makes it harder for defenders to identify the real source among multiple apparent scanners.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Source IP &amp; Interface Spoofing</div>
+      <div class="code-block"><span class="comment"># Specify source IP address</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-S 10.10.10.200 -e eth0</span>
+
+<span class="comment"># Specify source port (e.g. appear to come from port 53 — DNS)</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-g 53</span>
+
+<span class="comment"># Use a specific DNS server for resolution</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">--dns-server &lt;ns&gt;</span></div>
+    </div>
+
+    <div class="alert alert-blue">
+      <div class="alert-title">💡 Evasion Strategy Summary</div>
+      Use <code>-sA</code> to map what's actually reachable through the firewall. Use decoys (<code>-D</code>) to obscure your real IP. Use <code>-g 53</code> to make traffic look like DNS. Use <code>-Pn</code> when ICMP is blocked and you already know the host is up.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- CHEAT SHEET                 -->
+  <!-- ════════════════════════════ -->
+  <div class="section" id="cheatsheet">
+    <div class="section-header">
+      <div class="section-num">REF</div>
+      <div class="section-title">Cheat Sheet</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="sub-title">Scanning Options</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>10.10.10.0/24</code></td><td>Target network range</td></tr>
+          <tr><td><code>-sn</code></td><td>Disable port scanning (host discovery only)</td></tr>
+          <tr><td><code>-Pn</code></td><td>Disable ICMP echo requests (skip host discovery)</td></tr>
+          <tr><td><code>-n</code></td><td>Disable DNS resolution</td></tr>
+          <tr><td><code>-PE</code></td><td>Ping scan using ICMP Echo Requests</td></tr>
+          <tr><td><code>--packet-trace</code></td><td>Show all packets sent and received</td></tr>
+          <tr><td><code>--reason</code></td><td>Display reason for each result</td></tr>
+          <tr><td><code>--disable-arp-ping</code></td><td>Disable ARP Ping Requests</td></tr>
+          <tr><td><code>--top-ports=&lt;num&gt;</code></td><td>Scan N most-frequent ports</td></tr>
+          <tr><td><code>-p-</code></td><td>Scan all 65,535 ports</td></tr>
+          <tr><td><code>-p22-110</code></td><td>Scan port range</td></tr>
+          <tr><td><code>-p22,25</code></td><td>Scan specific ports</td></tr>
+          <tr><td><code>-F</code></td><td>Scan top 100 ports</td></tr>
+          <tr><td><code>-sS</code></td><td>TCP SYN scan (default, stealthy)</td></tr>
+          <tr><td><code>-sT</code></td><td>TCP Connect scan (full handshake)</td></tr>
+          <tr><td><code>-sA</code></td><td>TCP ACK scan (firewall mapping)</td></tr>
+          <tr><td><code>-sU</code></td><td>UDP scan</td></tr>
+          <tr><td><code>-sV</code></td><td>Version detection</td></tr>
+          <tr><td><code>-sC</code></td><td>Default script scan</td></tr>
+          <tr><td><code>--script &lt;script&gt;</code></td><td>Run specific NSE script(s)</td></tr>
+          <tr><td><code>-O</code></td><td>OS detection</td></tr>
+          <tr><td><code>-A</code></td><td>OS + version + scripts + traceroute</td></tr>
+          <tr><td><code>-D RND:5</code></td><td>5 random decoy IPs</td></tr>
+          <tr><td><code>-e &lt;iface&gt;</code></td><td>Specify network interface</td></tr>
+          <tr><td><code>-S 10.10.10.200</code></td><td>Spoof source IP</td></tr>
+          <tr><td><code>-g &lt;port&gt;</code></td><td>Spoof source port</td></tr>
+          <tr><td><code>--dns-server &lt;ns&gt;</code></td><td>Use specific DNS server for resolution</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">Output Options</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-oA &lt;filename&gt;</code></td><td>Save in all formats (normal, XML, grepable)</td></tr>
+          <tr><td><code>-oN &lt;filename&gt;</code></td><td>Normal (human-readable) format</td></tr>
+          <tr><td><code>-oG &lt;filename&gt;</code></td><td>Grepable format</td></tr>
+          <tr><td><code>-oX &lt;filename&gt;</code></td><td>XML format</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-title">Performance Options</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--max-retries &lt;num&gt;</code></td><td>Max retransmissions per port (default: 10)</td></tr>
+          <tr><td><code>--stats-every=5s</code></td><td>Print scan progress every 5 seconds</td></tr>
+          <tr><td><code>-v / -vv</code></td><td>Verbose — show results as they arrive</td></tr>
+          <tr><td><code>--initial-rtt-timeout 50ms</code></td><td>Set initial RTT timeout</td></tr>
+          <tr><td><code>--max-rtt-timeout 100ms</code></td><td>Set maximum RTT timeout</td></tr>
+          <tr><td><code>--min-rate 300</code></td><td>Send at least 300 packets/second</td></tr>
+          <tr><td><code>-T &lt;0-5&gt;</code></td><td>Timing template (0=paranoid → 5=insane)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Quick combos -->
+    <div class="sub-title">Common Scan Combos</div>
+    <div class="card">
+      <div class="code-block"><span class="comment"># Quick host discovery on a subnet</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.0/24 <span class="flag">-sn -oA</span> hosts
+
+<span class="comment"># Fast top-100 scan with reason</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-F --reason -oA</span> fast
+
+<span class="comment"># Full port + service + default scripts</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-p- -sV -sC -oA</span> full
+
+<span class="comment"># Aggressive all-in-one</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-A -p- -oA</span> aggressive
+
+<span class="comment"># Firewall mapping via ACK scan</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-sA -p80,443 --packet-trace -oA</span> ackscan
+
+<span class="comment"># Stealthy scan with decoys + spoof port</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-sS -D RND:5 -g 53 -Pn -n -oA</span> stealth
+
+<span class="comment"># UDP services (SNMP, DNS, DHCP)</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.28 <span class="flag">-sU -F -oA</span> udp
+
+<span class="comment"># High-speed whitelisted scan</span>
+<span class="prompt">$ </span>sudo nmap 10.129.2.0/24 <span class="flag">-F --min-rate 300 --max-retries 0 -oA</span> fast_net</div>
+    </div>
+  </div>
+
+</main>
+</div><!-- /page -->
+</body>
+</html>
