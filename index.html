@@ -22,22 +22,22 @@
   .topbar-title { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
   .topbar-right { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
 
-  .hero { max-width: 900px; margin: 0 auto; padding: 72px 32px 48px; text-align: center; }
+  .hero { max-width: 960px; margin: 0 auto; padding: 72px 32px 48px; text-align: center; }
   .hero-label { font-family: var(--mono); font-size: 11px; color: var(--accent2); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; }
   .hero h1 { font-family: var(--head); font-size: clamp(36px, 6vw, 64px); font-weight: 700; color: var(--text-bright); line-height: 1.05; }
   .hero h1 span { color: var(--accent); }
   .hero-sub { margin-top: 18px; color: var(--text-dim); font-size: 14px; max-width: 500px; margin-left: auto; margin-right: auto; }
 
-  .divider { display: flex; align-items: center; gap: 16px; max-width: 900px; margin: 0 auto 52px; padding: 0 32px; }
+  .divider { display: flex; align-items: center; gap: 16px; max-width: 960px; margin: 0 auto 52px; padding: 0 32px; }
   .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
   .divider-icon { font-family: var(--mono); font-size: 12px; color: var(--accent); opacity: 0.5; }
 
-  .stats { display: flex; justify-content: center; gap: 40px; max-width: 900px; margin: 0 auto 56px; padding: 0 32px; flex-wrap: wrap; }
+  .stats { display: flex; justify-content: center; gap: 40px; max-width: 960px; margin: 0 auto 56px; padding: 0 32px; flex-wrap: wrap; }
   .stat { text-align: center; }
   .stat-num { font-family: var(--head); font-size: 36px; font-weight: 700; color: var(--accent); }
   .stat-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; padding: 0 32px 80px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; max-width: 960px; margin: 0 auto; padding: 0 32px 80px; }
   @media(max-width: 500px) { .grid { grid-template-columns: 1fr; padding: 0 16px 60px; } }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 26px 28px; text-decoration: none; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: border-color .25s, transform .2s, box-shadow .25s; }
@@ -77,9 +77,9 @@
 </div>
 
 <div class="stats">
-  <div class="stat"><div class="stat-num">4</div><div class="stat-label">Modules</div></div>
-  <div class="stat"><div class="stat-num">50+</div><div class="stat-label">Topics Covered</div></div>
-  <div class="stat"><div class="stat-num">20+</div><div class="stat-label">Q&amp;A Answers</div></div>
+  <div class="stat"><div class="stat-num">5</div><div class="stat-label">Modules</div></div>
+  <div class="stat"><div class="stat-num">60+</div><div class="stat-label">Topics Covered</div></div>
+  <div class="stat"><div class="stat-num">25+</div><div class="stat-label">Q&amp;A Answers</div></div>
 </div>
 
 <div class="divider">
@@ -90,6 +90,7 @@
 
 <div class="grid">
 
+  <!-- Nmap -->
   <a class="card" href="HTML%20Notes/nmap-notes.html" style="--card-accent: #00d4ff;">
     <div class="card-badge">Module 01</div>
     <div class="card-icon">🗺️</div>
@@ -102,6 +103,7 @@
     <div class="card-link">Open Notes →</div>
   </a>
 
+  <!-- Web Recon -->
   <a class="card" href="HTML%20Notes/web-recon-notes.html" style="--card-accent: #ff6b35;">
     <div class="card-badge">Module 02</div>
     <div class="card-icon">🌐</div>
@@ -114,6 +116,7 @@
     <div class="card-link">Open Notes →</div>
   </a>
 
+  <!-- Footprinting -->
   <a class="card" href="HTML%20Notes/footprinting-notes.html" style="--card-accent: #39ff14;">
     <div class="card-badge">Module 03</div>
     <div class="card-icon">👣</div>
@@ -126,6 +129,7 @@
     <div class="card-link">Open Notes →</div>
   </a>
 
+  <!-- Vulnerability Assessment -->
   <a class="card" href="HTML%20Notes/vulnerability-assessment-notes.html" style="--card-accent: #c97bff;">
     <div class="card-badge">Module 04</div>
     <div class="card-icon">🛡️</div>
@@ -134,6 +138,19 @@
     <div class="card-desc">Nessus and OpenVAS configuration, authenticated scanning, reading plugin output, exporting reports, CVSS v3.1 scoring, the DREAD model, and all skill assessment answers.</div>
     <div class="card-tags">
       <span class="tag">Nessus</span><span class="tag">OpenVAS</span><span class="tag">CVSS v3.1</span><span class="tag">DREAD</span><span class="tag">Skill Assessment</span>
+    </div>
+    <div class="card-link">Open Notes →</div>
+  </a>
+
+  <!-- File Transfers -->
+  <a class="card" href="HTML%20Notes/file-transfers-notes.html" style="--card-accent: #ff3860;">
+    <div class="card-badge">Module 05</div>
+    <div class="card-icon">📦</div>
+    <div class="card-num">File Operations</div>
+    <div class="card-title">File Transfers</div>
+    <div class="card-desc">Every method for moving files: PowerShell, wget, cURL, SCP, SMB, Netcat, Python, PHP, Ruby, RDP mounting, base64, encryption, LOLBAS/GTFOBins, and detection evasion.</div>
+    <div class="card-tags">
+      <span class="tag">Windows</span><span class="tag">Linux</span><span class="tag">SMB / SCP</span><span class="tag">Netcat</span><span class="tag">Encryption</span><span class="tag">LOLBAS</span><span class="tag">GTFOBins</span><span class="tag">Evasion</span>
     </div>
     <div class="card-link">Open Notes →</div>
   </a>
